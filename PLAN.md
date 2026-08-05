@@ -74,10 +74,18 @@ timeboxed** — it must not delay the video or the repo.
 
 | # | By | Deliverable | Status |
 |---|---|---|---|
-| **M1** | Aug 10 | Vendor code read (§5.1); vendor MoveIt demo runs (mock hw); Isaac ROS container up; S0 gate passed | required |
-| **M2** | Aug 17 | Wrist-cam scene + recorded dataset + **offline `RGB-D → grasp PoseStamped`**, both branches evaluated (§5.2) | **required — load-bearing** |
-| **M3** | Aug 24 | Stock reference pick-and-place in Isaac Sim (soup can) | **optional, 3-day timebox** |
+| **M1** | Aug 10 | Vendor code read (§5.1); vendor MoveIt demo runs (mock hw); Isaac ROS container up; S0 gate passed; **capture script smoke-tested on 10 scenes** | required |
+| **M2** | **Aug 20** | Wrist-cam scene + 300-scene dataset + **offline `RGB-D → grasp PoseStamped`**, both branches evaluated (§5.2) | **required — load-bearing** |
+| **M3** | — | Stock reference pick-and-place in Isaac Sim (soup can) | **cut from the August path** |
 | **M4** | **Aug 29** | **Demo video + public repo. Start applying.** | required |
+
+**Schedule decision (rev 2.1):** rev 2.1 added real work to M1 and M2 — the S0 gate now
+includes authoring a ROS 2 Action Graph, and M2 gained two branches, a 300-scene capture
+pipeline, a debug overlay, and confidence intervals — on a box with no ROS installed yet, in
+the week the parent plan already called the riskiest. So **M2 moves to Aug 20 and M3 leaves the
+August path entirely**; do M3 only if M2 lands early, and treat it as September work otherwise.
+The dataset does not shrink — scene count is compute, not your time, and cutting a preregistered
+test set under deadline pressure is what would actually damage the result. Aug 29 still ships.
 | **M5a** | Sep 5 | DM USD validated + **ROS 2 Action Graph** + raw joint round-trip + `TopicBasedSystem` | |
 | **M5b** | Sep 12 | B601 **framework extension** + two packages + MoveIt/OMPL execution | |
 | **M5c** | Sep 19 | Flattened URDF + XRDF + **cuMotion** | |
@@ -188,13 +196,36 @@ positive.**
 
 One capture per randomized scene.
 
+⚠️ **This implies a capture pipeline that does not exist yet, and it is the riskiest thing on
+the critical path.** 300 randomized scenes with per-frame RGB, depth, `CameraInfo`, TF, and a
+`grasp_gt` transform cannot be hand-placed — it needs a scripted randomizer plus an annotator
+export. That capability was scheduled in §9 (Replicator, October); **M2 needs it in week two.**
+
+**Prerequisite, do it in M1 (by Aug 10): build and smoke-test the randomize-and-capture script
+on 10 scenes.** Verify that depth actually writes, that `grasp_gt` exports, and that the script
+completes headless without stalling. Your own note that `distance_to_image_plane` has hung in
+headless capture scripts applies to exactly this class of pipeline — the hedge was that it was
+an Isaac Lab observation, but a standalone Isaac Sim script using the same annotator can stall
+the same way. **Find that out on Aug 8 with 10 scenes, not on Aug 16 with 300.**
+
+Scene count itself is cheap once the script runs — it's compute, not your time. So if schedule
+pressure comes, cut elsewhere (§3), not here: shrinking a preregistered test set after the fact
+destroys the thing that made it credible.
+
 #### Preregistered targets (set now, before measuring)
 
-| Metric | Target |
-|---|---|
-| Grasp-point position error ‖p̂ − p*‖ | median ≤ 5 mm, p90 ≤ 10 mm |
-| **Opening-axis error** θ_open | median ≤ 5°, p90 ≤ 15° |
-| Detection recall (branch B) | ≥ 95 % |
+**The two branches get different bars — they are different tests.** Branch A has an oracle mask
+and exact depth, so it is a *unit test of geometry, units, and frames*; scoring it against
+Branch B's bar would let a real frame-convention or millimetre/metre bug pass as a success.
+
+| Metric | **Branch A** (oracle) | **Branch B** (predicted) |
+|---|---|---|
+| Grasp-point position error ‖p̂ − p*‖ | median ≤ **1 mm**, p90 ≤ 2 mm | median ≤ 5 mm, p90 ≤ 10 mm |
+| **Opening-axis error** θ_open | median ≤ **1°**, p90 ≤ 2° | median ≤ 5°, p90 ≤ 15° |
+| Detection recall | n/a — 100 % by construction | ≥ 95 % |
+
+A Branch A failure is a bug in your code, not a limitation of perception. Treat it as a
+red test and fix it before Branch B's numbers mean anything.
 
 Report **conditional pose errors** (given a true positive) *and* **end-to-end within-tolerance
 yield** *and* **false-positive rate** — the conditional numbers alone hide a detector that only
@@ -216,7 +247,7 @@ The **debug overlay** should render: mask, min-area rectangle, opening axis, pre
 and GT grasp. It is the single highest-value debugging artifact in the project and it is also
 your demo video.
 
-### 5.3 · S3 — Stock reference pick-and-place (Aug 17–24) → **M3, optional**
+### 5.3 · S3 — Stock reference pick-and-place → **M3, cut from the August path**
 
 ```bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
@@ -250,9 +281,16 @@ So the task is **select → validate → patch or regenerate only if required**,
 | `src/reBot-Isaacsim/urdf/reBot_B601_DM/urdf/reBot_B601_DM.urdf:251` | `rpy="3.1416 -1.5708 0"` |
 | `src/reBotArmController_ROS2/.../reBot_B601_DM_with_gripper.urdf:435` | `rpy="0 -1.5708 0"` |
 
-Same translation (`xyz="0 0 0.15971"`), **roll differs by π**. This is exactly the Flexiv
-flange-offset bug class that cost you a week — except it's visible now, before you build on it.
-**Resolve it before defining TCP frames or authoring the XRDF**, and record which source won.
+Same translation (`xyz="0 0 0.15971"`), **roll differs by π**. This is the Flexiv flange-offset
+bug class — except it's visible now, before you build on it. **Resolve it before defining TCP
+frames or authoring the XRDF.**
+
+**How to resolve it — don't assume one is wrong.** The two trees reference different
+`gripper_link` mesh files, so a 180° mount rotation could be cancelled by a correspondingly
+rotated mesh, leaving both trees self-consistent. **Compute FK to the fingertip world pose in
+each tree and compare *that*, not the joint origins.** If the fingertips agree, there is no bug
+and you've avoided "fixing" a non-issue; if they differ by π, record which source you adopt and
+why. Either way the answer is a writeup paragraph.
 
 ⚠️ **The MJCF parity model is the RS arm, not DM.** `mjcf/rebot_devarm/rebot_devarm.xml` uses
 joint classes `rs06`/`rs00`, gripper joints named `joint_left`/`joint_right`, and joint4 range
