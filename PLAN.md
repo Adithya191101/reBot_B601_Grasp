@@ -143,8 +143,21 @@ does exactly one thing:
 
 > **recorded RGB-D → `geometry_msgs/PoseStamped` grasp pose**
 
-Validate it offline against the recorded ground truth, in millimetres. Nothing else. No arm, no
-planner, no orchestration, no live simulator.
+Validate it offline against the recorded ground truth. Nothing else. No arm, no planner, no
+orchestration, no live simulator.
+
+**Commit to the metric and the bar now, before you measure — otherwise the number is post-hoc:**
+
+| Metric | Pass bar |
+|---|---|
+| Grasp-point **position error** (‖p̂ − p*‖, mm) | median ≤ 5 mm, 90th pct ≤ 10 mm |
+| Grasp-axis **angular error** (∠ between approach vectors, deg) | median ≤ 5°, 90th pct ≤ 15° |
+| Detection **recall** on the recorded set | ≥ 95 % |
+
+Report the three separately — a pipeline can nail position and be useless on orientation, and
+collapsing them into one score hides exactly the failure the gripper will find. Set the bars
+against the B601's ±0.2 mm repeatability and its finger stroke: a grasp-axis error large enough
+to miss the object's short side is a failure regardless of what the position error says.
 
 Why this is the right first deliverable: it's the piece the Seeed demo actually is, it's
 arm-independent, it runs on a laptop against a bag file, and it has a **number** attached. It
@@ -178,7 +191,26 @@ Public repo, site updated, start applying.
 ## 6. S5 — Bring the B601-DM in (Sep) → **M5** · *the real scope*
 
 Per NVIDIA's **Bring Your Own Robot** guide, this is **two packages you author**, not a config
-tweak. Use the **Flexiv Rizon** integration shipped in 4.5 as your worked reference.
+tweak.
+
+✅ **Your template exists and is exactly the right shape.** `NVIDIA-ISAAC-ROS/isaac_ros_manipulation`
+→ `isaac_ros_manipulation_robots/` contains:
+
+```
+isaac_ros_manipulation_flexiv_driver_utils/       ← copy this structure
+isaac_ros_manipulation_flexiv_robot_description/  ← and this
+isaac_ros_manipulation_robot_utils/               ← RobotControllerBase lives here
+isaac_ros_manipulation_ur_driver_utils/
+isaac_ros_manipulation_ur_isaac_sim_utils/        ← likely the Isaac Sim joint parser
+isaac_ros_manipulation_ur_robot_description/
+```
+
+The **Flexiv pair is a two-package integration matching the BYOR guide exactly** — a
+third-party arm added by following the same path you're about to walk, on an arm whose
+kinematics you already know from `~/Flexiv_RL`. **Read both Flexiv packages end to end before
+writing a line of B601 code.** (UR has a third, sim-specific package worth reading too, for how
+Isaac Sim joint states get filtered.) There is no Franka package here — Franka support is via
+`isaac_ros_cumotion_examples` only.
 
 **Package 1 — `isaac_ros_manipulation_b601_robot_description/`** (config)
 - `urdf/b601.xacro` — **with the `TopicBasedSystem` ros2_control plugin**, mapping
@@ -305,8 +337,10 @@ sim2real delta quoted against the noise floor. That's G1, ~2 weeks instead of ~8
   Jetson Thor. S3's timebox exists for this.
 - **FoundationPose VRAM** alongside a live Isaac Sim on 16 GB — unmeasured. Rule 1 is the hedge.
 - Is `gripper_joint` (URDF :436) a mimic/driver joint for the two prismatic fingers, or separate?
-- How close is the **Flexiv Rizon** driver-utils package to what the B601 needs? Read it first —
-  it may cut §6 substantially.
+- How close is the **Flexiv Rizon** driver-utils package to what the B601 needs? The structure
+  matches the BYOR guide exactly (§6); what's unknown is how much Flexiv-specific logic sits in
+  `RobotControllerBase` subclass vs. boilerplate. Reading it is the first task of §6 and could
+  pull M5 earlier than Sep 12.
 
 ---
 
