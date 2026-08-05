@@ -27,9 +27,15 @@ from .geometry import opening_axis_error_rad, transform_direction, transform_poi
 TOLERANCES = {
     "A0": {"position_m": 0.001, "angle_deg": 1.0},
     "A1": {"position_m": 0.003, "angle_deg": 3.0},
-    "A2": {"position_m": 0.003, "angle_deg": 3.0},   # reported per tilt, not pooled
+    "A2": {"position_m": 0.003, "angle_deg": 3.0},   # reported per tilt, never pooled
+    "B1": {"position_m": 0.005, "angle_deg": 5.0},
+    "B2": {"position_m": 0.005, "angle_deg": 5.0},   # reported per tilt, never pooled
     "B":  {"position_m": 0.005, "angle_deg": 5.0},
 }
+
+#: Oracle strata read the GT mask by definition; predicted strata do not.
+ORACLE_STRATA = ("A0", "A1", "A2")
+PREDICTED_STRATA = ("B1", "B2", "B")
 
 
 def mask_iou(a: np.ndarray, b: np.ndarray) -> float:
@@ -135,6 +141,9 @@ class BranchSummary:
     n_absent: int = 0
     n_true_positive: int = 0
     n_false_positive: int = 0
+    n_prediction_attempts: int = 0
+    n_valid_estimates: int = 0
+    n_pose_stamped: int = 0
     recall: Optional[float] = None
     false_positive_rate_absent: Optional[float] = None
     position_median_mm: Optional[float] = None

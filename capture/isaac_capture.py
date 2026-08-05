@@ -79,6 +79,11 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=20260808)
     ap.add_argument("--headful", action="store_true", help="fallback rung 2")
     ap.add_argument("--allow-radial-depth", action="store_true", help="fallback rung 3")
+    ap.add_argument("--depth-quantile", type=float, default=0.5,
+                    help="estimator baseline recorded into the manifest")
+    ap.add_argument("--locked", dest="locked", action="store_true", default=True)
+    ap.add_argument("--unlocked", dest="locked", action="store_false",
+                    help="permit writing into an existing directory (scratch only)")
     ap.add_argument("--width", type=int, default=640)
     ap.add_argument("--height", type=int, default=480)
     args = ap.parse_args()
@@ -173,19 +178,40 @@ def main() -> int:
             root=args.out, seed=args.seed, capture_backend="isaac_sim_5.1",
             depth_policy=(DEPTH_POLICY_CONVERTED_RADIAL if args.allow_radial_depth
                           else DEPTH_POLICY_IMAGE_PLANE),
-            depth_quantile=0.75,
+            depth_quantile=args.depth_quantile,
+            locked=args.locked,
             notes=f"Isaac Sim 5.1 Replicator capture; depth annotator={depth_name}; "
                   f"headless={not args.headful}",
         )
+        writer.set_capture_metadata(
+            backend="isaac_sim_5.1", width=args.width, height=args.height,
+            seed=args.seed, depth_quantile=args.depth_quantile,
+            depth_annotator=depth_name, headless=not args.headful,
+            scene_plan=[{"scene_id": s.scene_id, "stratum": s.stratum,
+                         "tilt_deg": s.tilt_deg, "n_distractors": s.n_distractors,
+                         "aim_jitter": s.aim_jitter} for s in plan_smoke_scenes(args.seed)],
+        )
 
         specs = plan_smoke_scenes(args.seed)
+        max_distractors = max(s.n_distractors for s in specs)
+        distractor_prims = [
+            world.scene.add(VisualCuboid(
+                prim_path=f"/World/distractor_{d}", name=f"distractor_{d}",
+                position=np.array([0.0, 0.0, -50.0]),
+                scale=np.array([0.10, 0.05, 0.03]),
+                color=np.array([0.6, 0.4, 0.3]),
+            ))
+            for d in range(max_distractors)
+        ]
         per_scene, annot_reads, stalled = [], [], None
 
         with VramSampler() as vram:
             t_all = time.perf_counter()
             for i, spec in enumerate(specs):
                 t_scene = time.perf_counter()
-                target, T_base_cam, K_want = randomize_scene(spec.seed, tilt_deg=spec.tilt_deg)
+                target, T_base_cam, K_want, distractors = randomize_scene(
+                    spec.seed, tilt_deg=spec.tilt_deg, aim_jitter=spec.aim_jitter,
+                    n_distractors=spec.n_distractors)
                 K = make_intrinsics(K_want[0, 0], K_want[0, 0],
                                     (args.width - 1) / 2.0, (args.height - 1) / 2.0)
 
@@ -227,6 +253,23 @@ def main() -> int:
                 aperture = float(cam_prim.GetAttribute("horizontalAperture").Get() or 20.955)
                 cam_prim.GetAttribute("focalLength").Set(
                     float(K[0, 0]) * aperture / float(args.width))
+
+                # Distractors appear in RGB and depth but never in the target
+                # mask; unused ones are parked far out of frame.
+                for d, prim in enumerate(distractor_prims):
+                    if d < len(distractors):
+                        dis = distractors[d]
+                        prim.set_world_pose(
+                            position=dis.T_base_object[:3, 3],
+                            orientation=np.array(
+                                _quat_wxyz_from_matrix(dis.T_base_object[:3, :3])),
+                        )
+                        prim.set_local_scale(2.0 * np.asarray(dis.half_extents))
+                        UsdGeom.Gprim(prim_utils.get_prim_at_path(f"/World/distractor_{d}")) \
+                            .CreateDisplayColorAttr().Set(
+                                Vt.Vec3fArray([Gf.Vec3f(*[float(c) for c in dis.base_color])]))
+                    else:
+                        prim.set_world_pose(position=np.array([0.0, 0.0, -50.0]))
 
                 for _ in range(2):
                     rep.orchestrator.step(rt_subframes=8)

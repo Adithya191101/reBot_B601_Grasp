@@ -2,12 +2,21 @@
 """Deterministic ROS 2 Jazzy publisher that replays the file-native dataset.
 
 Publishes, all stamped with the **recorded** capture timestamp rather than the
-wall clock:
+wall clock. Topic names come from :mod:`ros2_iface.topics`, which the grasp node
+imports too -- both ends must resolve to the same names or the graph comes up
+looking healthy and delivers nothing.
 
-* ``~/rgb``            ``sensor_msgs/Image``       rgb8
-* ``~/depth``          ``sensor_msgs/Image``       32FC1, optical-axis Z, metres
-* ``~/camera_info``    ``sensor_msgs/CameraInfo``
-* ``/tf``              base -> camera optical frame
+* ``/dataset/rgb``          ``sensor_msgs/Image``       rgb8
+* ``/dataset/depth``        ``sensor_msgs/Image``       32FC1, optical-axis Z, metres
+* ``/dataset/camera_info``  ``sensor_msgs/CameraInfo``
+* ``/clock``                ``rosgraph_msgs/Clock``     recorded capture time
+* ``/tf``                   base -> camera optical frame
+
+**Recorded-time semantics.** With ``--publish-clock`` (default) this node is the
+sim-time source: it publishes ``/clock`` from the dataset's own stamps *before*
+each frame, and every consumer must run with ``use_sim_time:=true``. Consumers
+that use wall-clock time will fail TF lookups at the image stamp, because the
+recorded epoch is years away from ``now``.
 
 Determinism is the requirement (PLAN.md 5.2.2): same dataset in, same messages
 out, every run. Scenes advance on a fixed-period timer in manifest order, and
@@ -22,7 +31,7 @@ fields into real messages.
 Run, once Jazzy is installed::
 
     export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-    python3 ros2_iface/dataset_publisher.py --dataset artifacts/smoke/dataset
+    python3 -m ros2_iface.dataset_publisher --dataset artifacts/smoke/dataset
 """
 
 from __future__ import annotations
@@ -40,11 +49,15 @@ import rclpy  # noqa: E402
 from geometry_msgs.msg import TransformStamped  # noqa: E402
 from rclpy.node import Node  # noqa: E402
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy  # noqa: E402
+from rosgraph_msgs.msg import Clock  # noqa: E402
 from sensor_msgs.msg import CameraInfo, Image  # noqa: E402
 from tf2_ros import TransformBroadcaster  # noqa: E402
 
 from grasp_smoke import dataset as ds  # noqa: E402
 from grasp_smoke.geometry import quaternion_from_matrix  # noqa: E402
+from ros2_iface.topics import (  # noqa: E402
+    DEPTH_ENCODING, RGB_ENCODING, add_topic_arguments, resolve_topics,
+)
 
 #: Sensor-data QoS. A mismatch here against a default-QoS subscriber is the
 #: classic silent drop the S0 gate checks for (PLAN.md 4).
@@ -57,8 +70,11 @@ SENSOR_QOS = QoSProfile(
 
 
 class DatasetPublisher(Node):
-    def __init__(self, dataset_root: Path, period_s: float, loop: bool):
+    def __init__(self, dataset_root: Path, period_s: float, loop: bool,
+                 topics, publish_clock: bool = True):
         super().__init__("dataset_publisher")
+        self.topics = topics
+        self.publish_clock = publish_clock
         self.root = Path(dataset_root)
         self.scene_ids = ds.scene_ids(self.root)
         if not self.scene_ids:
@@ -73,9 +89,17 @@ class DatasetPublisher(Node):
             f"replaying {len(self.scene_ids)} scenes from {self.root} (checksums OK)"
         )
 
-        self.pub_rgb = self.create_publisher(Image, "~/rgb", SENSOR_QOS)
-        self.pub_depth = self.create_publisher(Image, "~/depth", SENSOR_QOS)
-        self.pub_info = self.create_publisher(CameraInfo, "~/camera_info", SENSOR_QOS)
+        self.pub_rgb = self.create_publisher(Image, topics.rgb, SENSOR_QOS)
+        self.pub_depth = self.create_publisher(Image, topics.depth, SENSOR_QOS)
+        self.pub_info = self.create_publisher(CameraInfo, topics.camera_info, SENSOR_QOS)
+        # /clock needs reliable+transient_local so a late subscriber still learns
+        # the current sim time instead of blocking forever.
+        self.pub_clock = self.create_publisher(Clock, topics.clock, 10) if publish_clock else None
+        self.get_logger().info(
+            f"topics: rgb={topics.rgb} depth={topics.depth} "
+            f"camera_info={topics.camera_info} clock="
+            f"{topics.clock if publish_clock else '<not published>'}"
+        )
         self.tf_broadcaster = TransformBroadcaster(self)
         self.timer = self.create_timer(period_s, self.publish_next)
 
@@ -100,7 +124,7 @@ class DatasetPublisher(Node):
         self._stamp(rgb, frame.stamp_ns)
         rgb.header.frame_id = frame.camera_frame_id
         rgb.height, rgb.width = frame.height, frame.width
-        rgb.encoding = "rgb8"
+        rgb.encoding = RGB_ENCODING
         rgb.is_bigendian = 0
         rgb.step = frame.width * 3
         rgb.data = frame.rgb.astype(np.uint8).tobytes()
@@ -109,7 +133,7 @@ class DatasetPublisher(Node):
         self._stamp(depth, frame.stamp_ns)
         depth.header.frame_id = frame.camera_frame_id
         depth.height, depth.width = frame.height, frame.width
-        depth.encoding = "32FC1"      # metres, optical-axis Z
+        depth.encoding = DEPTH_ENCODING   # metres, optical-axis Z
         depth.is_bigendian = 0
         depth.step = frame.width * 4
         depth.data = frame.depth_m.astype(np.float32).tobytes()
@@ -142,8 +166,14 @@ class DatasetPublisher(Node):
         tf.transform.rotation.z = float(q[2])
         tf.transform.rotation.w = float(q[3])
 
-        # TF first: a consumer that receives an image before its transform has to
-        # buffer or drop it.
+        # Clock first, then TF, then data. A consumer on sim time cannot process
+        # a stamp it has not yet been told exists, and cannot transform an image
+        # whose transform has not arrived.
+        if self.pub_clock is not None:
+            clock = Clock()
+            clock.clock.sec = int(frame.stamp_ns // 1_000_000_000)
+            clock.clock.nanosec = int(frame.stamp_ns % 1_000_000_000)
+            self.pub_clock.publish(clock)
         self.tf_broadcaster.sendTransform(tf)
         self.pub_info.publish(info)
         self.pub_rgb.publish(rgb)
@@ -156,10 +186,14 @@ def main() -> None:
     ap.add_argument("--dataset", type=Path, required=True)
     ap.add_argument("--period", type=float, default=1.0)
     ap.add_argument("--loop", action="store_true")
+    ap.add_argument("--no-clock", dest="publish_clock", action="store_false",
+                    default=True, help="do not act as the sim-time source")
+    add_topic_arguments(ap)
     args, ros_args = ap.parse_known_args()
 
     rclpy.init(args=ros_args)
-    node = DatasetPublisher(args.dataset, args.period, args.loop)
+    node = DatasetPublisher(args.dataset, args.period, args.loop,
+                            resolve_topics(args), args.publish_clock)
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

@@ -107,19 +107,42 @@ class Manifest:
         }
 
 
+class DatasetExistsError(RuntimeError):
+    """Raised when a locked capture would write into an existing dataset."""
+
+
 class DatasetWriter:
-    """Writes scenes, then seals the dataset with a checksummed manifest."""
+    """Writes scenes, then seals the dataset with a checksummed manifest.
+
+    ``locked=True`` (the default) refuses to write into an existing non-empty
+    directory. Silently overwriting a sealed dataset destroys the one artifact
+    the locked-test protocol depends on, and it is exactly the mistake that
+    happens under deadline pressure -- so it is an error, not a warning.
+    """
 
     def __init__(self, root: Path, seed: int, capture_backend: str,
                  depth_policy: str = DEPTH_POLICY_IMAGE_PLANE,
-                 depth_quantile: float = 0.75, notes: str = ""):
+                 depth_quantile: float = 0.5, notes: str = "",
+                 locked: bool = True, capture_metadata: Optional[dict] = None):
         self.root = Path(root)
+        if locked and self.root.exists() and any(self.root.iterdir()):
+            raise DatasetExistsError(
+                f"{self.root} already exists and is not empty. Refusing to overwrite a "
+                f"potentially sealed dataset. Choose a new --out, or pass locked=False "
+                f"for a scratch capture."
+            )
         (self.root / "frames").mkdir(parents=True, exist_ok=True)
         (self.root / "labels").mkdir(parents=True, exist_ok=True)
         self.manifest = Manifest(
             seed=seed, depth_policy=depth_policy, capture_backend=capture_backend,
             depth_quantile=depth_quantile, notes=notes,
         )
+        self._capture_metadata = dict(capture_metadata or {})
+
+    def set_capture_metadata(self, **kwargs) -> None:
+        """Metadata is written **before** :meth:`seal`, so a crash mid-seal cannot
+        leave a manifest that describes a capture no one can reconstruct."""
+        self._capture_metadata.update(kwargs)
 
     def write_scene(self, frame: Frame, labels: Labels) -> None:
         if frame.scene_id != labels.scene_id:
@@ -180,9 +203,17 @@ class DatasetWriter:
         })
 
     def seal(self) -> Path:
+        """Write capture metadata first, then the manifest, then freeze."""
+        if self._capture_metadata:
+            _dump_json(self.root / "capture_metadata.json", self._capture_metadata)
         path = self.root / "manifest.json"
         _dump_json(path, self.manifest.to_dict())
         return path
+
+
+def manifest_sha256(root: Path) -> str:
+    """Hash of the manifest itself -- one value identifying an entire dataset."""
+    return sha256_file(Path(root) / "manifest.json")
 
 
 # --------------------------------------------------------------------------
@@ -237,15 +268,51 @@ def load_labels(root: Path, scene_id: str) -> Labels:
 
 
 def verify_checksums(root: Path) -> list:
-    """Re-hash every file. Returns the list of paths that no longer match."""
+    """Re-hash every file. Returns the list of paths that no longer match.
+
+    Detects modified **and missing** files. Use :func:`unexpected_files` for the
+    other direction -- a checksum sweep alone cannot see a file that was added.
+    """
     root = Path(root)
     bad = []
     for scene in load_manifest(root)["scenes"]:
         for rel, expected in scene["files"].items():
             path = root / rel
-            if not path.exists() or sha256_file(path) != expected:
+            if not path.exists():
+                bad.append(f"{rel} (MISSING)")
+            elif sha256_file(path) != expected:
                 bad.append(rel)
     return bad
+
+
+#: Files allowed at the dataset root that are not per-scene payload.
+_ROOT_ALLOWED = {"manifest.json", "capture_metadata.json", "capture_stats.json"}
+
+
+def unexpected_files(root: Path) -> list:
+    """Files present under the dataset that the manifest does not account for.
+
+    An extra scene, a stray mask, or a half-written frame from an interrupted
+    capture would otherwise sit there silently and be picked up by anything that
+    globs the directory instead of reading the manifest.
+    """
+    root = Path(root)
+    declared = {
+        rel for scene in load_manifest(root)["scenes"] for rel in scene["files"]
+    }
+    found = set()
+    for sub in ("frames", "labels"):
+        base = root / sub
+        if base.exists():
+            found |= {
+                str(p.relative_to(root)) for p in base.rglob("*") if p.is_file()
+            }
+    extra = sorted(found - declared)
+    extra += sorted(
+        p.name for p in root.iterdir()
+        if p.is_file() and p.name not in _ROOT_ALLOWED
+    )
+    return extra
 
 
 def directory_size_bytes(root: Path) -> int:
