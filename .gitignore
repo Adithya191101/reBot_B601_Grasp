@@ -1,0 +1,19 @@
+# upstream sources — pinned in upstream.repos, restore with:
+#   vcs import src < upstream.repos
+src/
+
+# ROS 2 workspace build artifacts
+build/
+install/
+log/
+
+# recorded datasets (S2) — large, keep out of git
+bags/
+data/
+*.mcap
+*.db3
+
+# python
+__pycache__/
+*.pyc
+.venv/

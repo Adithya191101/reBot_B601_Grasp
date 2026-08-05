@@ -1,0 +1,18 @@
+# vcstool manifest — pinned upstream sources for this project.
+#   vcs import src < upstream.repos
+# Pinned to the commits verified on 2026-08-04. Bump deliberately, not incidentally:
+# facts in PLAN.md (ros2_control plugin, gripper joint types, YOLO mask/OBB usage) were
+# read from these exact trees.
+repositories:
+  reBot-DevArm-Grasp:
+    type: git
+    url: https://github.com/Seeed-Projects/reBot-DevArm-Grasp.git
+    version: 547faa08e5161af996892497c0aaa788401454fc
+  reBotArmController_ROS2:
+    type: git
+    url: https://github.com/Seeed-Projects/reBotArmController_ROS2.git
+    version: 39fbea54c7235b1c38bd025fc2e7308e42bd2fbe
+  reBot-Isaacsim:
+    type: git
+    url: https://github.com/Seeed-Projects/reBot-Isaacsim.git
+    version: c3ee253ca113ea3514da442684ef5d4894219374
