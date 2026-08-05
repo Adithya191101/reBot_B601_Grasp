@@ -3,12 +3,19 @@
 Working folder for Seeed's vendor reference demo:
 <https://wiki.seeedstudio.com/rebot_arm_b601_dm_grasping_demo/>
 
-Nothing is cloned or installed yet — this is the folder plus notes captured from the wiki
-page on 2026-08-04.
+> **→ [PLAN.md](PLAN.md) is the working document** (rev 2.1): a staged Isaac Sim + Isaac ROS,
+> simulation-only build of this demo on the B601-DM, with milestones through Oct.
+> The notes below are the wiki's real-hardware recipe, kept for reference.
 
-> **→ [PLAN.md](PLAN.md) is the working document**: a staged Isaac Sim + Isaac ROS,
-> simulation-only build of this demo on the B601-DM, with dated milestones through Sep.
-> The notes below are just the wiki's real-hardware recipe, kept for reference.
+**Upstream sources are cloned and pinned.** `upstream.repos` pins `reBot-DevArm-Grasp`,
+`reBotArmController_ROS2`, and `reBot-Isaacsim` at the commits the plan's facts were read from.
+`src/` is gitignored — restore with:
+
+```bash
+vcs import src < upstream.repos
+```
+
+Nothing is *installed* yet (no ROS 2, no Isaac ROS) — that's S0 in the plan.
 
 ## What the demo is
 

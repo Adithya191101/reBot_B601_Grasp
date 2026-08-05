@@ -1,39 +1,46 @@
 # reBot B601-DM Visual Grasping — Isaac Sim + Isaac ROS, simulation only
 
-**Written:** 2026-08-04 · **Rev 2** (after review — scope corrected, milestones re-dated)
+**Written:** 2026-08-04 · **Rev 2.1** — evaluation design corrected, asset story corrected,
+BYOR scope corrected again
 **Parent plan:** `~/docs/sota-gap-plan-aug2026.md` (this is an expanded, learning-first P1)
 **Reference demo:** <https://wiki.seeedstudio.com/rebot_arm_b601_dm_grasping_demo/>
 
-> **What changed in rev 2, and why it matters:** rev 1 treated the B601-DM swap as a
-> URDF→USD + XRDF job and put it on the critical path to Aug 29. NVIDIA's *Bring Your Own
-> Robot* guide (read directly) shows it's **two new ROS packages plus Python subclasses plus a
-> launch test plus XRDF** — multi-week, not multi-day. Rev 2 moves the B601 to September and
-> makes the Aug 29 artifact something that doesn't depend on it. It also drops the "swap
-> RT-DETR for YOLO" one-liner, which was wrong (§7).
+> **Revision history — what each pass got wrong, so it isn't relearned:**
+> **rev 1** treated the B601 swap as URDF→USD + XRDF and put it on the Aug 29 critical path.
+> **rev 2** corrected the scope (BYOR = two authored packages), moved B601 to September, and
+> dropped the wrong "swap RT-DETR for YOLO" one-liner.
+> **rev 2.1** corrects the *measurement* — rev 2 scored the approach vector, which in Seeed's
+> code is just the camera viewing ray and therefore measures nothing — plus: a **DM USD already
+> exists** (rev 2 said convert from URDF), the MJCF parity model is the **RS** arm not DM, and
+> BYOR additionally needs a **framework extension** because `RobotType` is a closed enum.
 
 ---
 
 ## 0. The idea in one line
 
 Seeed's demo is a hand-rolled Python grasping pipeline on real hardware. NVIDIA's *Isaac for
-Manipulation* is the same pipeline shape, GPU-accelerated, in ROS 2, running in Isaac Sim.
-**Start from what already runs, substitute one piece at a time.** Never a big-bang integration.
+Manipulation* is the same pipeline shape, GPU-accelerated, in ROS 2, in Isaac Sim.
+**Start from what already runs, substitute one piece at a time.**
 
-| Seeed demo (real, Python) | Your version (sim, ROS 2) | Honest difficulty |
+| Seeed demo (real, Python) | Your version (sim, ROS 2) | Difficulty |
 |---|---|---|
 | Orbbec / RealSense RGB-D | Isaac Sim camera → `isaacsim.ros2.bridge` | easy |
-| YOLO **seg + OBB** (`yoloe-26s-seg.pt`, `yolov8s-world.pt`) | see §7 — **not** a drop-in | medium |
-| heuristic grasp from mask axis / GraspNet | `isaac_grasp` YAML + Grasp Editor, or FoundationPose | medium |
+| YOLO **seg + OBB** (`yoloe-26s-seg.pt`, `yolov8s-world.pt`) | see §8 — **not** a drop-in | medium |
+| min-area-rect short edge → **opening axis** | same maths, ROS node | medium |
 | `calibration/hand_eye.py` + `aruco_pose.py` | known extrinsics in sim → solve `AX=XB` anyway | easy |
 | `reBotArm_control_py` (Pinocchio IK) | `isaac_ros_cumotion` + MoveIt 2 + `ros2_control` | **hard** (§6) |
-| `scripts/main.py` orchestration | `isaac_ros_manipulation_orchestration` (behavior tree) | medium |
+| `scripts/main.py` orchestration | `isaac_ros_manipulation_orchestration` (BT) | medium |
 
 ## 1. What sim-only does and doesn't buy you
 
 Sim-only fully closes **G2** (perception → grasp) and **G3** (C++). It does **not** close **G1**
-— a sim2real delta needs hardware. The design consequence: this is one ROS 2 graph, and going
-to hardware swaps exactly one layer — the `ros2_control` hardware interface — leaving
-perception, grasp, planning, and orchestration untouched.
+— a sim2real delta needs hardware.
+
+⚠️ **Correction to rev 2:** going to hardware does *not* swap "exactly one layer." It changes
+the `ros2_control` hardware interface **and** the camera source (real sensor noise, exposure,
+rolling shutter), hand-eye calibration (measured, not known), frame definitions, the session
+zeroing procedure, and possibly the controller interface itself. The sim work still removes
+most of the risk — but budget the transfer honestly rather than as a config swap.
 
 ---
 
@@ -41,318 +48,366 @@ perception, grasp, planning, and orchestration untouched.
 
 | Thing | Status |
 |---|---|
-| GPU | RTX 5000 Ada Laptop, **16 GB VRAM** — binding constraint, see §10 |
-| Driver | **580.173.02** ✅ meets Isaac ROS 4.5's "Driver 580+ / CUDA 13.0+"; also avoids the 595 `rtx.scenedb` crash. **`apt-mark hold` it today.** |
+| GPU | RTX 5000 Ada Laptop, **16 GB VRAM** — binding constraint, §10 |
+| Driver | **580.173.02** ✅ meets Isaac ROS 4.5's 580+/CUDA 13.0+; avoids the 595 `rtx.scenedb` crash. **`apt-mark hold` today.** |
 | OS | Ubuntu 24.04.4 ✅ |
-| Isaac Sim | **5.1.0.0**, pip in `~/isaaclab-venv` (Python **3.11.15**) ✅ the version the cuMotion tutorial targets |
-| ROS 2 bridge | present, ships both `humble/` and `jazzy/` lib dirs ✅ |
+| Isaac Sim | **5.1.0.0**, pip in `~/isaaclab-venv` (Python **3.11.15**) ✅ matches the cuMotion tutorial |
+| ROS 2 bridge | present, both `humble/` and `jazzy/` lib dirs ✅ |
 | ROS 2 | **not installed** — first task |
-| Docker | 29.5.0, user in `docker` group ✅ — **this is the install path** (§4) |
-| Repos | cloned + pinned in `.repos`, see `src/` |
+| Docker | 29.5.0, user in `docker` group ✅ — the install path (§4) |
+| Upstream repos | cloned into `src/`, pinned in **`upstream.repos`** |
 
-### The distro-split landmine is gone
+**The distro-split landmine is gone.** Isaac ROS **release-4.5** (2026-07-06): *"All Isaac ROS
+packages are designed and tested to be compatible with ROS 2 Jazzy."* Parent plan §9.3 is stale.
 
-Parent plan §9.3 warns Isaac ROS is Humble-pinned in Docker and suggests building the arm stack
-from source to avoid a bridge. **Stale.** Isaac ROS **release-4.5** (released 2026-07-06):
-*"All Isaac ROS packages are designed and tested to be compatible with ROS 2 Jazzy."* Isaac Sim
-5.1, Isaac ROS 4.5, `reBotArmController_ROS2`, and your OS are all Jazzy.
-
-### 🎁 Isaac ROS 4.5 added **Flexiv Rizon** support
-
-You have a Flexiv Rizon 4 project (`~/Flexiv_RL`). Release 4.5's manipulation notes list
-*"Added Flexiv Rizon support"* alongside the new BYOR guide. **Read the Flexiv driver-utils
-package as your template for §6** — it's a worked example of exactly the integration you need,
-for an arm whose kinematics you already know. That's the single biggest de-risker available.
-
-### Two process rules
-
-1. **Never `import rclpy` inside Isaac Sim's interpreter** — Isaac Sim is Python 3.11, Jazzy is
-   3.12. Isaac Sim talks ROS via OmniGraph bridge nodes; your ROS nodes are separate processes.
-2. **Cyclone DDS everywhere**: `export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` and a matching
-   `ROS_DOMAIN_ID` in every terminal *and* inside the container. Isaac Sim defaults to FastRTPS;
-   a mismatch looks exactly like a broken pipeline — topics silently never connect.
+**Two process rules.** (1) Never `import rclpy` inside Isaac Sim's interpreter — Isaac Sim is
+Python 3.11, Jazzy is 3.12; the bridge is OmniGraph nodes, your ROS nodes are separate
+processes. (2) Cyclone DDS + matching `ROS_DOMAIN_ID` everywhere, host and container — Isaac Sim
+defaults to FastRTPS and a mismatch looks exactly like a broken pipeline.
 
 ---
 
-## 3. Milestones — re-dated in rev 2
+## 3. Milestones
 
-**Hard rule from the parent plan: something ships Aug 29.** In rev 2 the Aug 29 artifact is
-**M2 + M3**, neither of which needs the B601-DM. The B601 integration (M5) is September work.
-That's not a retreat — it's what the BYOR scope actually costs, and finding it out now is worth
-more than discovering it on Aug 26.
+**Hard rule: something ships Aug 29, and it is M2.** M3 is explicitly **optional and
+timeboxed** — it must not delay the video or the repo.
 
-| # | By | Deliverable | Needs B601? |
+| # | By | Deliverable | Status |
 |---|---|---|---|
-| **M1** | Aug 10 | Vendor MoveIt demo runs (mock hw); vendor grasp code read; Isaac ROS container up | no |
-| **M2** | Aug 17 | Wrist-cam scene + recorded dataset + **offline `RGB-D → grasp PoseStamped`, validated against sim ground truth** | no |
-| **M3** | Aug 24 | Stock reference pick-and-place running in Isaac Sim (**soup can**, §5) | no |
-| **M4** | **Aug 29** | **Demo video + public repo. Start applying.** | no |
-| **M5** | Sep 12 | B601-DM driven from Isaac Sim through `TopicBasedSystem` + cuMotion (BYOR packages built) | yes |
-| **M6** | Sep 26 | Gripper working + your objects → full B601 pick-place in sim | yes |
-| **M7** | Oct 10 | Honest depth, Replicator-trained perception, eval protocol, C++ node, writeup | yes |
+| **M1** | Aug 10 | Vendor code read (§5.1); vendor MoveIt demo runs (mock hw); Isaac ROS container up; S0 gate passed | required |
+| **M2** | Aug 17 | Wrist-cam scene + recorded dataset + **offline `RGB-D → grasp PoseStamped`**, both branches evaluated (§5.2) | **required — load-bearing** |
+| **M3** | Aug 24 | Stock reference pick-and-place in Isaac Sim (soup can) | **optional, 3-day timebox** |
+| **M4** | **Aug 29** | **Demo video + public repo. Start applying.** | required |
+| **M5a** | Sep 5 | DM USD validated + **ROS 2 Action Graph** + raw joint round-trip + `TopicBasedSystem` | |
+| **M5b** | Sep 12 | B601 **framework extension** + two packages + MoveIt/OMPL execution | |
+| **M5c** | Sep 19 | Flattened URDF + XRDF + **cuMotion** | |
+| **M6** | Sep 26 | Active two-finger gripper, contact, attachment, authored grasps | |
+| **M7** | Oct 10 | Honest depth, Replicator-trained perception, eval protocol, C++ node, writeup | |
 
-**M2 is the load-bearing one.** It's arm-independent, it's the part that's genuinely *yours*
-rather than NVIDIA's, and it can't be blocked by the reference workflow failing to launch.
+M5 is split into four because "cuMotion by Sep 12" was not credible — the Flexiv template
+clarifies the sequence but doesn't compress it.
 
 ---
 
 ## 4. S0 — Environment (Aug 4–6)
 
-1. `sudo apt-mark hold` the NVIDIA driver packages. 30 seconds, protects the project.
-2. Install **ROS 2 Jazzy** + `ros-jazzy-rmw-cyclonedds-cpp` on the host.
-3. **Isaac ROS 4.5 via Docker.** NVIDIA recommends it, your Docker + NVIDIA runtime already
-   work, and the BYOR work in §6 means building packages against the full Isaac ROS tree —
-   which the dev container is built for. Host-side Isaac Sim talks to the container over DDS:
-   **Cyclone DDS + same `ROS_DOMAIN_ID`**, host networking.
-4. Launch Isaac Sim with `ROS_DISTRO=jazzy`, open any scene.
-5. **Done when:** `ros2 topic list` *inside the container* shows topics published by host-side
-   Isaac Sim. That crossing is the foundation — don't move on without it.
+1. `sudo apt-mark hold` the NVIDIA driver packages.
+2. ROS 2 Jazzy + `ros-jazzy-rmw-cyclonedds-cpp` on the host.
+3. **Isaac ROS 4.5 via Docker** — NVIDIA's recommendation, your runtime already works, and §6
+   means building against the full Isaac ROS tree. Host Isaac Sim ↔ container over DDS:
+   Cyclone + same `ROS_DOMAIN_ID`, host networking.
+
+### The S0 gate — `ros2 topic list` is not sufficient
+
+An arbitrary Isaac Sim scene publishes **nothing**. Topics only exist if the scene has an
+explicit ROS 2 Action Graph. Build one (clock, camera helper, TF, joint states), then verify
+**from inside the container**:
+
+- [ ] `/clock` publishing, and `use_sim_time` respected by a test node
+- [ ] **actual RGB and depth messages arriving** (`ros2 topic hz`, not just listed)
+- [ ] `CameraInfo` present, with K matching the render resolution
+- [ ] **TF resolvable at the image timestamp** — not just "TF exists"
+- [ ] rates and **QoS profiles** compatible (sensor-data QoS vs default is a classic silent drop)
+
+Only then is S0 done.
 
 ---
 
-## 5. S1–S3 — Get to Aug 29 without the B601
+## 5. S1–S3 — Aug 29 without the B601
 
-### S1 · Read the vendor code, run the vendor demo (Aug 4–10) → **M1**
+### 5.1 · S1 — Read the vendor code, run the vendor demo (Aug 4–10) → **M1**
 
-Already cloned into `src/` and pinned in `.repos`. Read these in order — they are a compact,
-complete, working implementation of the exact pipeline you're rebuilding:
+Cloned in `src/`, pinned in `upstream.repos`. **Read in this order**, producing a short
+**frame / unit / interface note** as you go (this note is the spec for M2):
 
-| File | Why |
-|---|---|
-| `reBot-DevArm-Grasp/scripts/main.py` | the orchestration you'll replace with a behavior tree |
-| `utils/yolo_utils.py` | **the important one** — see §7 |
-| `utils/ordinary_grasp.py` | how a grasp pose is derived from mask/OBB + depth |
-| `utils/transforms.py` | frame conventions; compare against ROS TF2 |
-| `calibration/hand_eye.py` + `aruco_pose.py` | the `AX=XB` solve you'll reimplement |
-| `drivers/camera/*.py` | what the RGB-D interface actually needs to provide |
+1. `utils/ordinary_grasp.py` — the grasp geometry, the important one
+2. `utils/transforms.py` — frame conventions; compare against ROS TF2
+3. `scripts/main.py` — the orchestration you'll replace with a behavior tree
+4. `utils/camera_utils.py` — intrinsics, alignment, depth units
+5. `calibration/hand_eye.py` (+ `aruco_pose.py`) — the `AX=XB` solve
 
-Then run the vendor MoveIt demo, before touching cuMotion:
+**Defer `scripts/grasp.py`** — that's the separate GraspNet route, not the baseline pipeline.
+
+Then run the vendor MoveIt demo:
 ```bash
 ros2 launch rebotarm_moveit_config demo.launch.py
 ```
-⚠️ **Verified: this drives `mock_components/GenericSystem`** (`rebotarm_moveit_config/config/
-rebotarm.ros2_control.xacro:8`) — virtual hardware only. It will *not* drive Isaac Sim, and
-that's precisely the gap §6 closes. Run it anyway: it's the fastest way to see the B601's
-planning group, SRDF, and joint limits behave.
+⚠️ Verified: it drives `mock_components/GenericSystem`
+(`rebotarm_moveit_config/config/rebotarm.ros2_control.xacro:8`) — virtual hardware only, it
+will **not** drive Isaac Sim. Run it anyway to see the planning group, SRDF, and joint limits.
 
-### S2 · The offline perception slice (Aug 10–17) → **M2** ← *most important stage*
+### 5.2 · S2 — The offline perception slice (Aug 10–17) → **M2** ← *the deliverable*
 
-Build the wrist-camera scene in Isaac Sim and **record**, don't stream: RGB, aligned depth,
-`camera_info`, TF, `/joint_states`, and **ground-truth object pose**. Then write one node that
-does exactly one thing:
+> **recorded RGB-D → `geometry_msgs/PoseStamped` grasp pose**, validated offline.
 
-> **recorded RGB-D → `geometry_msgs/PoseStamped` grasp pose**
+No arm, no planner, no orchestration, no live simulator. **Freeze the evaluator before writing
+the node** — object, grasp GT, output frame, depth units, timestamp policy, dataset seeds,
+model, and pass/fail accounting all fixed in writing first.
 
-Validate it offline against the recorded ground truth. Nothing else. No arm, no planner, no
-orchestration, no live simulator.
+#### What to measure — the opening axis, not the approach
 
-**Commit to the metric and the bar now, before you measure — otherwise the number is post-hoc:**
+Verified in `utils/ordinary_grasp.py`: `approach = _normalize(-position)` — that is just the
+**camera viewing ray**, and it carries almost no information from perception. The mask/OBB
+result actually determines `open_axis`, derived from the min-area-rect short edge and then
+orthogonalized against the approach. **So score the opening axis:**
 
-| Metric | Pass bar |
+$$\theta_{\text{open}} = \cos^{-1}\!\left(\left|\hat{o}\cdot o^{*}\right|\right)$$
+
+The absolute value is required — a parallel-jaw gripper is symmetric under 180°, so ô and −ô
+are the same grasp. Approach-vs-object-surface-normal is a useful **secondary diagnostic**,
+not the headline metric.
+
+#### Ground truth must be a *grasp*, not an object pose
+
+The object origin is not the intended contact point. **Add a `grasp_gt` child transform** to the
+object in the scene and compare the predicted contact pose against that transform **at the image
+timestamp**.
+
+**Object choice matters:** use one **flat-topped, non-square, textured** object. A cube,
+cylinder, or soup can is orientation-degenerate — the opening axis is unidentifiable and the
+angular metric becomes noise. (Soup can is fine for M3's stock workflow; it is wrong here.)
+
+#### Two branches, reported separately
+
+| Branch | Input | What it validates |
+|---|---|---|
+| **A · Oracle** | ground-truth mask + clean depth | geometry, depth handling, TF, `PoseStamped` plumbing |
+| **B · Predicted** | model mask + the same depth | the actual RGB-D perception slice |
+
+⚠️ **Branch A's recall is 100% by construction and must never be reported as detector
+performance.** Freeze model, prompt, threshold, and matching rule; **mask IoU ≥ 0.5 = true
+positive.**
+
+#### Dataset
+
+| Split | Scenes | Use |
+|---|---|---|
+| Development | 50 | iterate freely |
+| **Locked test** | **200 positive** | touch once, at the end |
+| Target-absent | 50 | false-positive rate |
+
+One capture per randomized scene.
+
+#### Preregistered targets (set now, before measuring)
+
+| Metric | Target |
 |---|---|
-| Grasp-point **position error** (‖p̂ − p*‖, mm) | median ≤ 5 mm, 90th pct ≤ 10 mm |
-| Grasp-axis **angular error** (∠ between approach vectors, deg) | median ≤ 5°, 90th pct ≤ 15° |
-| Detection **recall** on the recorded set | ≥ 95 % |
+| Grasp-point position error ‖p̂ − p*‖ | median ≤ 5 mm, p90 ≤ 10 mm |
+| **Opening-axis error** θ_open | median ≤ 5°, p90 ≤ 15° |
+| Detection recall (branch B) | ≥ 95 % |
 
-Report the three separately — a pipeline can nail position and be useless on orientation, and
-collapsing them into one score hides exactly the failure the gripper will find. Set the bars
-against the B601's ±0.2 mm repeatability and its finger stroke: a grasp-axis error large enough
-to miss the object's short side is a failure regardless of what the position error says.
+Report **conditional pose errors** (given a true positive) *and* **end-to-end within-tolerance
+yield** *and* **false-positive rate** — the conditional numbers alone hide a detector that only
+succeeds on easy scenes. **Print confidence intervals.**
 
-Why this is the right first deliverable: it's the piece the Seeed demo actually is, it's
-arm-independent, it runs on a laptop against a bag file, and it has a **number** attached. It
-also sidesteps the 16 GB VRAM problem entirely (§10) and gives you a regression test that
-every later change can be checked against.
+⚠️ These are **engineering targets, not error budgets derived from hardware.** Do *not* justify
+them with the arm's ±0.2 mm repeatability — that's a joint-repeatability figure and has nothing
+to do with visual pose error. If a target is missed, **the August artifact still ships**, with
+an honest failure analysis. A missed preregistered target that you diagnose is a better
+portfolio item than a target invented after the fact.
 
-### S3 · Stock reference pick-and-place (Aug 17–24) → **M3**
+#### Build it in this order
 
-Run the reference workflow unmodified (UR + Robotiq 2F-140, RT-DETR, ground-truth depth):
+```
+pure tested library  →  rosbag replay wrapper  →  PoseStamped + debug overlay  →  evaluator
+```
+
+The **debug overlay** should render: mask, min-area rectangle, opening axis, predicted grasp,
+and GT grasp. It is the single highest-value debugging artifact in the project and it is also
+your demo video.
+
+### 5.3 · S3 — Stock reference pick-and-place (Aug 17–24) → **M3, optional**
+
 ```bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ros2 launch isaac_ros_manipulation_bringup workflows.launch.py \
    manipulator_workflow_config:=${ISAAC_ROS_MANIPULATION_WORKFLOW_CONFIG_DIR}/sim_launch_params.yaml
 ```
-⚠️ **Start with the soup can.** Isaac ROS 4.5 known issues: *"In Isaac Sim, the pick-and-place
-workflow may fail to pick the mac-and-cheese object, `object_class: 22`, with the Robotiq 2F-140
-gripper."* Don't debug a documented bug.
+⚠️ **Start with the soup can.** Isaac ROS 4.5 known issue: *"the pick-and-place workflow may
+fail to pick the mac-and-cheese object, `object_class: 22`, with the Robotiq 2F-140 gripper."*
 
-⚠️ Also expect friction generally: this workflow's stated test platform is Jetson AGX Thor, and
-`NVIDIA-ISAAC-ROS/isaac_ros_manipulation` **issue #22** (open, Thor, 4.1–4.2) reports it failing
-after working in 4.0. **Timebox to 3 days.** Fallback: the simpler **Pose to Pose Planning** and
-**Object Following** sim tutorials. M2 already secures the Aug 29 artifact either way.
-
-### S4 · Ship (Aug 29) → **M4**
-
-Demo video: the offline grasp-pose result with error numbers, plus whatever of S3 came up.
-Public repo, site updated, start applying.
+⚠️ Stated test platform is Jetson AGX Thor; issue **#22** (open, Thor, 4.1–4.2) reports it
+failing after working in 4.0. **Three-day stretch task. If it doesn't come up, drop it and
+ship M2.** Fallback tutorials: Pose to Pose Planning, Object Following.
 
 ---
 
-## 6. S5 — Bring the B601-DM in (Sep) → **M5** · *the real scope*
+## 6. S5 — Bring the B601-DM in (Sep) → **M5a/b/c**
 
-Per NVIDIA's **Bring Your Own Robot** guide, this is **two packages you author**, not a config
-tweak.
+### 6.0 Assets — select a canonical source, then validate. Do *not* start by converting.
 
-✅ **Your template exists and is exactly the right shape.** `NVIDIA-ISAAC-ROS/isaac_ros_manipulation`
-→ `isaac_ros_manipulation_robots/` contains:
+⚠️ **Correction to rev 2 (and to my stored notes): a DM USD already exists** —
+`src/reBot-Isaacsim/usd/reBot_B601_DM/reBot_B601_DM.usda`, with `payloads/` for base, robot,
+geometries, materials, and physics (`physx`, `physics`, `mujoco`). The "RS-variant only" claim
+is **false** for the current tree.
 
+So the task is **select → validate → patch or regenerate only if required**, not convert.
+
+⚠️ **Unresolved 180° gripper-mount discrepancy — verified, resolve before anything else:**
+
+| Source | `gripper_joint` origin rpy |
+|---|---|
+| `src/reBot-Isaacsim/urdf/reBot_B601_DM/urdf/reBot_B601_DM.urdf:251` | `rpy="3.1416 -1.5708 0"` |
+| `src/reBotArmController_ROS2/.../reBot_B601_DM_with_gripper.urdf:435` | `rpy="0 -1.5708 0"` |
+
+Same translation (`xyz="0 0 0.15971"`), **roll differs by π**. This is exactly the Flexiv
+flange-offset bug class that cost you a week — except it's visible now, before you build on it.
+**Resolve it before defining TCP frames or authoring the XRDF**, and record which source won.
+
+⚠️ **The MJCF parity model is the RS arm, not DM.** `mjcf/rebot_devarm/rebot_devarm.xml` uses
+joint classes `rs06`/`rs00`, gripper joints named `joint_left`/`joint_right`, and joint4 range
+`-1.79 1.69` (the DM URDF has −1.87). **Adapt the cross-validation *technique*; do not treat it
+as DM ground truth.**
+
+⚠️ **The DM USD has no ROS 2 Action Graph.** Verified — no OmniGraph/ROS2Publish prims. You must
+author it: **clock, joint-state publisher, joint-command subscriber, articulation controller.**
+Without it `TopicBasedSystem` has nothing to talk to. This is **M5a**, and it is prerequisite to
+everything else.
+
+Also still true: verify actuator limits (URDF claims 50 rad/s joints 1–3, 200 rad/s joints 4–6 —
+200 rad/s ≈ 1,900 RPM at the joint) against Damiao DM4310/DM4340P datasheets, override, and
+document the override. `joint4` lower limit −1.87 rad.
+
+### 6.1 The framework extension (M5b) — *new in rev 2.1*
+
+⚠️ Isaac ROS 4.5 **hard-codes** the supported robots and grippers. Verified in
+`isaac_ros_manipulation_ros_python_utils/manipulator_types.py`:
+
+```python
+class RobotType(ManipulatorEnum):
+    UR = 'UR'
+    FLEXIV = 'FLEXIV'
+
+class GripperType(enum.Enum):
+    ROBOTIQ_2F_140 = 'robotiq_2f_140'
+    ROBOTIQ_2F_85  = 'robotiq_2f_85'
+    GRAV           = 'grav'
 ```
-isaac_ros_manipulation_flexiv_driver_utils/       ← copy this structure
-isaac_ros_manipulation_flexiv_robot_description/  ← and this
-isaac_ros_manipulation_robot_utils/               ← RobotControllerBase lives here
-isaac_ros_manipulation_ur_driver_utils/
-isaac_ros_manipulation_ur_isaac_sim_utils/        ← likely the Isaac Sim joint parser
-isaac_ros_manipulation_ur_robot_description/
-```
 
-The **Flexiv pair is a two-package integration matching the BYOR guide exactly** — a
-third-party arm added by following the same path you're about to walk, on an arm whose
-kinematics you already know from `~/Flexiv_RL`. **Read both Flexiv packages end to end before
-writing a line of B601 code.** (UR has a third, sim-specific package worth reading too, for how
-Isaac Sim joint states get filtered.) There is no Franka package here — Franka support is via
-`isaac_ros_cumotion_examples` only.
+Closed enums, no dynamic registration. So the B601 needs a **third piece of work beyond the two
+packages**: extend `RobotType`/`GripperType` and the `DriverConfig` dispatch in `config.py`
+(the `get_gripper_type()` classmethod included). Decide early whether you **fork** Isaac ROS or
+carry a **patch overlay** — and say which in the writeup, because "I had to extend the framework
+enum" is a more interesting sentence than "I wrote a config file."
 
-**Package 1 — `isaac_ros_manipulation_b601_robot_description/`** (config)
-- `urdf/b601.xacro` — **with the `TopicBasedSystem` ros2_control plugin**, mapping
-  `joint_commands_topic` / `joint_states_topic` to Isaac Sim topics. This is the specific thing
-  the vendor's `mock_components/GenericSystem` cannot do.
-- `srdf/`, `config/initial_positions.yaml`, `joint_limits.yaml`, `kinematics_sim.yaml`,
-  `moveit_sim_controllers.yaml`, `ros2_control_controllers_sim.yaml`
+### 6.2 The two packages
 
-**Package 2 — `isaac_ros_manipulation_b601_driver_utils/`** (Python you write)
-- `config.py` — subclass `DriverConfig` from `isaac_ros_manipulation_ros_python_utils.config`
-- `robot_description.py` — xacro → URDF XML string
-- `b601_driver_utils.py` — subclass `RobotControllerBase` from
-  `isaac_ros_manipulation_robot_utils.robot_controller_base`, implementing
-  `get_robot_state_publisher()`, `get_moveit_group_node()`, `get_robot_control_nodes()`
-  (ros2_control node + JointTrajectoryController + JointStateBroadcaster + gripper spawners)
-- `launch/b601_driver.launch.py`, `params/b601.yaml`
-- `src/isaac_sim_joint_parser_node.py` — filters Isaac Sim joint states down to arm joints
+**`isaac_ros_manipulation_b601_robot_description/`** (config) — `urdf/b601.xacro` with the
+**`TopicBasedSystem`** ros2_control plugin mapping `joint_commands_topic`/`joint_states_topic`
+to Isaac Sim; `srdf/`; `config/` for `initial_positions`, `joint_limits`, `kinematics_sim`,
+`moveit_sim_controllers`, `ros2_control_controllers_sim`.
 
-**Plus:** routing (`robot_launch_file_path` in the workflow YAML + a `package.xml` dep in
-`isaac_ros_manipulation_bringup`), a launch test (`test/test_b601_driver_launch.py`), and the
-**XRDF**.
+**`isaac_ros_manipulation_b601_driver_utils/`** (Python) — `config.py` subclassing
+`DriverConfig`; `robot_description.py`; `b601_driver_utils.py` subclassing `RobotControllerBase`
+(implementing `get_robot_state_publisher()`, `get_moveit_group_node()`,
+`get_robot_control_nodes()`); `launch/b601_driver.launch.py`; `params/b601.yaml`;
+`src/isaac_sim_joint_parser_node.py`.
 
-**XRDF** (`b601_gripper.xrdf`): c-space joints with acceleration and jerk limits, tool frames,
-per-link collision spheres, self-collision ignore rules. Use Isaac Sim's visual **Robot
-Description Editor** (4.0+) for the spheres.
+Plus routing (`robot_launch_file_path` in the workflow YAML, `package.xml` dep in
+`isaac_ros_manipulation_bringup`) and a launch test.
 
-**Before any of it — USD and kinematics sanity (do this first, it's cheap):**
-1. URDF → USD with **`joint_drive=None`** or explicit gains (the `UrdfConverterCfg` default has
-   `MISSING` stiffness).
-2. **Verify actuator limits.** The URDF claims 50 rad/s (joints 1–3) and 200 rad/s (joints 4–6);
-   200 rad/s ≈ 1,900 RPM at the joint — motor-side or placeholder. Check Damiao DM4310 /
-   DM4340P datasheets, override, **document the override**. Note `joint4` lower limit −1.87 rad.
-3. **Cross-validate FK** against `reBot-Isaacsim/mjcf/rebot_devarm` in MuJoCo. One afternoon;
-   catches the silent-frame-offset bug class that cost you a week on the Flexiv.
+✅ **Your template**: `isaac_ros_manipulation_robots/` ships
+`isaac_ros_manipulation_flexiv_driver_utils` + `isaac_ros_manipulation_flexiv_robot_description`
+— a two-package third-party integration on an arm you already know from `~/Flexiv_RL` (and
+`GRAV` is the Flexiv gripper, so the gripper path is worked too). `isaac_ros_manipulation_ur_isaac_sim_utils`
+is worth reading for Isaac Sim joint-state filtering. **Read both Flexiv packages end to end
+before writing B601 code.** No Franka package exists here.
+
+### 6.3 XRDF + cuMotion (M5c)
+
+Flattened URDF + `b601_gripper.xrdf`: c-space joints with acceleration and jerk limits, tool
+frames, per-link collision spheres, self-collision ignore rules. Use Isaac Sim's visual **Robot
+Description Editor**. **Only after the 180° question is settled.**
 
 ---
 
-## 7. The gripper — its own stage, not a bullet (Sep) → **M6**
+## 7. The gripper (M6)
 
-Isaac's orchestration expects a **`control_msgs/GripperCommand` action**. The B601 exposes
-`gripper_joint1` and `gripper_joint2`, both **prismatic** (verified in
-`reBot_B601_DM_with_gripper.urdf:489,547`; there's also a `gripper_joint` at :436 — check
-whether it's a mimic/driver joint before wiring anything). You need:
+Isaac orchestration expects a **`control_msgs/GripperCommand` action**. Verified in the vendor
+URDF: `gripper_joint` (:436) is **`type="fixed"`** — a mount, not actuated, **not a mimic joint**
+(there are no `mimic` tags in the file at all). Only **`gripper_joint1` and `gripper_joint2`**
+(both prismatic, :489/:547) are actuated, and being un-mimicked they must **both** be commanded.
 
-1. A **gripper action controller** (or adapter node) exposing `GripperCommand` and mapping the
-   single commanded width onto two prismatic joints.
-2. **Contact/friction setup** in the USD so grasps hold — default material params will drop
-   objects and it will look like a planning bug.
-3. **Attach/detach handling** during transport.
-4. **Grasp authoring** for this gripper: Isaac Sim `Isaac Utils → Grasp Editor` → `isaac_grasp`
-   YAML. The documented examples are parallel-jaw grippers like the 2F-140; budget real time.
+Needed: a gripper action controller/adapter mapping one commanded width → two prismatic joints;
+contact and friction setup in the USD (defaults will drop objects and look like a planning bug);
+attach/detach handling during transport; and grasp authoring via `Isaac Utils → Grasp Editor` →
+`isaac_grasp` YAML. Documented examples are parallel-jaw grippers like the 2F-140.
 
 ## 8. Perception — why YOLO is not a drop-in
 
-Rev 1 said "replace RT-DETR with `isaac_ros_yolov8`." **That was wrong**, and the reason is
-worth understanding because it's the whole design of the Seeed pipeline:
-
-- `isaac_ros_yolov8` publishes `vision_msgs/Detection2DArray` on `detections_output` —
-  **axis-aligned boxes only, no masks, no oriented boxes.** It also isn't among the workflow's
-  standard detector configs (which use `RTDETR`), so it needs a custom adapter and launch graph.
-- Seeed's `utils/yolo_utils.py` uses `result.masks` **and** `result.obb`, and ships
-  `yoloe-26s-seg.pt` (segmentation) and `yolov8s-world.pt` (open-vocabulary). **The mask/OBB
-  principal axis is where their grasp orientation comes from.** An axis-aligned box cannot
-  produce it.
-
-Honest mappings, pick one:
+`isaac_ros_yolov8` publishes `vision_msgs/Detection2DArray` — **axis-aligned boxes only, no
+masks, no oriented boxes** — and isn't among the workflow's standard detector configs (which use
+`RTDETR`), so it needs a custom adapter and launch graph. Seeed's `utils/yolo_utils.py` uses
+`result.masks` **and** `result.obb`, shipping `yoloe-26s-seg.pt` and `yolov8s-world.pt`. **The
+mask/OBB short edge is where the opening axis comes from** (§5.2) — an axis-aligned box cannot
+produce it.
 
 | Want | Isaac ROS route |
 |---|---|
-| mask → grasp axis (closest to Seeed) | detector box → **`isaac_ros_segment_anything2`** (box-prompted) → mask → principal axis |
-| full 6D pose (stronger result) | detector + mask → **`isaac_ros_foundationpose`** |
-| open-vocab, like `--target-class "coffee cup"` | **`isaac_ros_grounding_dino`** |
+| mask → opening axis (closest to Seeed) | detector box → **`isaac_ros_segment_anything2`** (box-prompted) → mask → min-area rect |
+| full 6D pose (stronger) | detector + mask → **`isaac_ros_foundationpose`** |
+| open-vocab (`--target-class "coffee cup"`) | **`isaac_ros_grounding_dino`** |
 
-**Sequencing rule:** close the loop with a **trivially-correct pose first** — an ArUco marker
-(Seeed ships `aruco_pose.py` and the printable PDFs) or sim ground-truth pose published straight
-onto the pose topic. *Then* swap in the real estimator. Debugging perception and integration at
-the same time is how weeks disappear.
+**Sequencing rule:** close the loop with a trivially-correct pose first — ArUco (Seeed ships
+`aruco_pose.py` and printable PDFs) or ground-truth pose published straight onto the topic —
+*then* swap in the estimator.
 
 ## 9. S8–S9 — Honest depth, trained perception, writeup (Sep–Oct) → **M7**
 
-1. **Replace ground-truth depth with a simulated RGB-D sensor** — noise, missing returns at
-   edges and on specular surfaces. **Measure pick success before and after.** The reference
-   workflow's perfect depth is what makes its perception claim hollow; this step is what makes
-   your number mean something.
+1. **Replace ground-truth depth with a simulated RGB-D sensor** (noise, dropouts at edges and on
+   speculars). **Measure yield before and after.**
    ⚠️ Isaac ROS 4.5 known issue: *"Workflows that involve pose estimation may generate incorrect
    pose estimates when using ESS or FoundationStereo depth. As a workaround, use
-   RealSense/camera sensor depth instead."* Use sensor depth.
-2. **Replicator SDG → train a component.** Render RGB-D + 6D pose labels with randomized
-   lighting, textures, distractors, extrinsics (there's a *Grasping Synthetic Data Generation*
-   tutorial). Fine-tune **on synthetic only**, evaluate in sim, report pose error in mm.
-   Be precise in the writeup: this is *a component trained in simulation, evaluated in
-   simulation*. It is **not** sim2real until it runs on the arm.
-3. **Eval protocol** (same as your VLA work): ≥20 episodes, varied start poses, continuous
-   execution, no restart between episodes. Report success with a failure breakdown.
-4. **Characterize a hard case** — deformable object through the classical pipeline; pin down
-   whether pose, grasp validity, or slip is what fails.
+   RealSense/camera sensor depth instead."*
+2. **Replicator SDG → train a component**, evaluate in sim, report pose error in mm. State
+   plainly that this is *trained in sim, evaluated in sim* — **not** sim2real until it runs on
+   the arm.
+3. **Eval protocol**: ≥20 episodes, varied start poses, continuous execution, no restart.
+4. **Characterize a hard case** — deformable object; is it pose, grasp validity, or slip?
 5. **Port one node to C++** (`rclcpp`) — the perception→grasp bridge. Closes G3.
 6. **Writeup** in the style of your SmolVLA page.
 
 ## 10. Cross-cutting rules
 
-1. **16 GB VRAM is the binding constraint.** Isaac Sim alone is ~8 GB. **Develop against
-   rosbags** — record once, run perception offline, go live only when each stage works alone.
-   S2 is built around this deliberately.
-2. **One substitution at a time.** Every stage changes exactly one thing and ends working.
-3. **Git-tag every working state** — `m1-vendor-moveit`, `m2-offline-grasp`, `m3-refworkflow`, …
-4. **Isaac Lab is not this project.** It's for RL env authoring; this is Isaac Sim + Isaac ROS.
-   *Caveat:* if you author Replicator/SDG through Isaac Lab in §9, your own notes apply there —
-   `CameraCfg` scenes need `--enable_cameras`, and `distance_to_image_plane` has hung in
-   headless scripts. Through Isaac Sim standalone it's a different entry point.
+1. **16 GB VRAM is binding.** Isaac Sim alone ~8 GB. **Develop against rosbags** — S2 is built
+   around this deliberately.
+2. **One substitution at a time.**
+3. **Git-tag every working state** — `m1-vendor-moveit`, `m2-offline-grasp`, …
+4. **Isaac Lab is not this project.** *Caveat:* if you author Replicator/SDG through Isaac Lab in
+   §9, your own notes apply — `CameraCfg` needs `--enable_cameras`, `distance_to_image_plane`
+   has hung headless. Different entry point via Isaac Sim standalone.
 5. **Don't let Ubuntu upgrade the driver.** 595 crashes Isaac Sim 5.1.
 
 ## 11. Hardware bolt-on (later)
 
-Nothing above changes. Swap `TopicBasedSystem` for the real `ros2_control` hardware interface
-from `reBotArmController_ROS2` → real hand-eye calibration → **session-to-session zero variance
-measurement** (the B601 stores no persistent calibration; motors re-zero against whatever pose
-the arm holds at connect — that variance is your noise floor) → rerun the same eval → the
-sim2real delta quoted against the noise floor. That's G1, ~2 weeks instead of ~8.
+Swap `TopicBasedSystem` for the real hardware interface — **and** re-do camera sourcing,
+hand-eye calibration, frame definitions, and session zeroing (§1). The B601 stores no persistent
+calibration; motors re-zero against whatever pose the arm holds at connect, so **measure
+session-to-session zero variance** — that's the noise floor the sim2real delta must clear.
 
 ## 12. Open questions
 
-- Does the full reference pick-and-place run on **x86 + Isaac Sim 5.1**? Stated test platform is
-  Jetson Thor. S3's timebox exists for this.
-- **FoundationPose VRAM** alongside a live Isaac Sim on 16 GB — unmeasured. Rule 1 is the hedge.
-- Is `gripper_joint` (URDF :436) a mimic/driver joint for the two prismatic fingers, or separate?
-- How close is the **Flexiv Rizon** driver-utils package to what the B601 needs? The structure
-  matches the BYOR guide exactly (§6); what's unknown is how much Flexiv-specific logic sits in
-  `RobotControllerBase` subclass vs. boilerplate. Reading it is the first task of §6 and could
-  pull M5 earlier than Sep 12.
+- Does the reference pick-and-place run on **x86 + Isaac Sim 5.1**? Test platform is Jetson Thor.
+- **Which URDF wins** the 180° gripper-mount conflict (§6.0)?
+- Is the shipped **DM USD** physically complete — inertias, joint drives, collision meshes — or
+  does it need regeneration after validation?
+- How much of the **Flexiv** `RobotControllerBase` subclass is Flexiv-specific vs boilerplate?
+- **FoundationPose VRAM** alongside a live Isaac Sim on 16 GB — unmeasured.
 
 ---
 
 ### Verification notes (2026-08-04)
 
-Checked on this machine: GPU/driver/OS/disk; Isaac Sim 5.1.0.0 + both bridge distro lib dirs;
-`/opt/ros` absent. Cloned and grepped directly: `mock_components/GenericSystem` in
-`rebotarm_moveit_config`; `gripper_joint1/2` prismatic in `reBot_B601_DM_with_gripper.urdf`;
-`result.masks` + `result.obb` in Seeed's `yolo_utils.py`; models `yoloe-26s-seg.pt`,
-`yolov8s-world.pt`, `yolo11n.pt`. From NVIDIA docs: Isaac ROS 4.5 (2026-07-06) Jazzy/24.04/driver
-580+; BYOR package and file list; the mac-and-cheese `object_class: 22` and ESS/FoundationStereo
-known issues; `isaac_ros_yolov8` publishing `Detection2DArray` axis-aligned only; Flexiv Rizon
-support added in 4.5; XRDF fields; Grasp Editor location. Issue #22 read directly (open, Thor,
-4.1–4.2 — a caution, not a blocker on x86). B601 actuator-limit values carried from the parent
-plan; re-verify against the cloned URDF before trusting them in sim.
+Read directly from the pinned trees: `approach = _normalize(-position)` and the `open_axis`
+derivation in `utils/ordinary_grasp.py`; `mock_components/GenericSystem` in
+`rebotarm.ros2_control.xacro:8`; `gripper_joint` `type="fixed"` at :436 and no `mimic` tags
+anywhere in the vendor URDF; `gripper_joint1/2` prismatic at :489/:547; the two conflicting
+`gripper_joint` rpy values; `usd/reBot_B601_DM/reBot_B601_DM.usda` plus payloads; MJCF classes
+`rs06`/`rs00` and `joint_left`/`joint_right`; no OmniGraph prims in the DM USD; `result.masks`
++ `result.obb` and the three shipped `.pt` models in `yolo_utils.py`/`models/`.
+From NVIDIA sources: Isaac ROS 4.5 (2026-07-06) Jazzy/24.04/driver 580+; the BYOR package list;
+`RobotType`/`GripperType` enums quoted from `manipulator_types.py` @ `release-4.5`; the
+mac-and-cheese `object_class: 22` and ESS/FoundationStereo known issues; `isaac_ros_yolov8`
+publishing axis-aligned `Detection2DArray`; the `isaac_ros_manipulation_robots/` directory
+listing; XRDF fields; Grasp Editor location. Issue #22 read directly (open, Thor, 4.1–4.2).
+B601 actuator-limit values carried from the parent plan — **re-verify against the cloned URDF.**
