@@ -1,45 +1,73 @@
-# reBot Arm B601-DM — Visual Grasping Demo
+# reBot Arm B601-DM — One Simulated Grasp
 
-Working folder for Seeed's vendor reference demo:
+Learning project that recreates one complete grasp from Seeed's vendor demo in
+Isaac Sim:
 <https://wiki.seeedstudio.com/rebot_arm_b601_dm_grasping_demo/>
 
-> **→ [PLAN.md](PLAN.md) is the working document** (rev 2.1 audited): a staged Isaac Sim +
-> Isaac ROS, simulation-only build of this demo on the B601-DM, with milestones through Oct.
-> The notes below are the wiki's real-hardware recipe, kept for reference.
+> **Current objective:** make the shipped B601-DM asset physically open, approach,
+> close around one object, and lift it once. [PLAN.md](PLAN.md) puts that result on
+> the critical path. The existing perception smoke test remains useful regression
+> support; the 300-scene benchmark, ROS/BYOR integration, and publication work are
+> deferred until the pick succeeds.
+
+## Critical path
+
+| Stage | Outcome |
+|---|---|
+| **P0** ✅ | Load the shipped DM USD; verify its 8 driven joints, limits, gains, tracking, and measured finger separation. |
+| **P1** ✅ | Close both physical finger joints on one object and validate contacts — first-contact aperture measured at 41.0 mm for a 40.0 mm object. |
+| **P2** ✅ | `GRASP → CLOSE → LIFT → HOLD → RELEASE` with fixed joint targets. 59.8 mm rise, 1.0 s hold, falls 321.6 mm on release. |
+| **P3** | Implement the demo's own robot interface — `move_to_traj` / `open_gripper` / `grasp` / `get_tcp_pose` — against the Isaac articulation, on the pinned `reBotArm_control_py` Pinocchio IK. |
+| **P3b** | Hand-eye calibration (`AX=XB`), validated against the known sim extrinsic. |
+| **P4** | Feed the same executor an oracle grasp, then a YOLOE-derived grasp. |
+
+A P2 pass requires the object to rise at least 50 mm and remain held for at
+least 1 second. Joint motion must use physics drive targets and measured
+feedback. Teleporting, parenting, or attaching the object does not count.
+
+**Status: P0, P1 and P2 pass.** The shipped B601-DM asset grasps and lifts an
+object through physics — **59.8 mm rise, 1.0 s hold, 3/3 repetitions, 20/20
+checks** — see **[PICK.md](PICK.md)** and `artifacts/b601_pick/b601_pick.json`.
+Getting there found a fourth asset defect: the finger colliders are convex hulls
+that leave only ~24 mm of usable jaw against 143 mm of authored travel. P3
+(`move_to_traj`), P3b (hand-eye) and P4 (perception) are next.
 
 **Upstream sources are cloned and read.** `upstream.repos` pins `reBot-DevArm-Grasp`,
-`reBotArmController_ROS2`, and `reBot-Isaacsim` at the exact commits every claim in PLAN.md was
-verified against. `src/` is gitignored — restore with:
+`reBotArmController_ROS2`, `reBot-Isaacsim`, and **`reBotArm_control_py`** — the demo's own
+Pinocchio IK / trajectory / gripper controller, which is the entire robot interface the demo
+uses and which had been missing from the pin set. `src/` is gitignored — restore with:
 
 ```bash
 vcs import src < upstream.repos
 ```
 
-⚠️ **Pinning is incomplete.** `isaac_ros_manipulation` and `topic_based_ros2_control` arrive with
-the Isaac ROS container and are **not yet pinned** — record their exact SHAs into
-`upstream.repos` when the container workspace is first created. ROS 2 and Isaac ROS are not
-installed yet; that's S0.
+**BYOR / XRDF / cuMotion / MoveIt are cut, not deferred** (PLAN.md §6). The demo moves the
+arm with `move_to_traj` on Pinocchio — no ROS, no MoveIt, no cuMotion anywhere in its control
+path — so that work was never on the route to this goal.
 
-## The ten-scene smoke test (M1 gate, PLAN.md §5.2.1)
+## Regression support: the ten-scene smoke test
 
 Implemented and passing on the Isaac Sim backend. **[SMOKE_TEST.md](SMOKE_TEST.md) has the
-measured results**, including the three bugs it caught and the 300-scene extrapolation.
+measured results**, including the three bugs it caught. It validates perception geometry,
+depth handling, dataset replay, and scoring; it does not move the B601, exercise contacts,
+or prove a pick.
 
 ```bash
-./run_smoke.sh            # Isaac Sim if available, else analytic; installs nothing
+./run_smoke.sh            # Isaac Sim backend; installs nothing
 ./run_smoke.sh analytic   # force the dependency-free backend
 ```
 
 Needs only Isaac Sim's interpreter (`~/isaaclab-venv/bin/python`) — no ROS 2, no sudo, no
-downloads. Headline: the chain runs end to end; A1 oracle recovers the grasp to
-**0.0004 mm / 0.008°**; capture is **~1.1 min and ~0.40 GB for 300 scenes**.
+downloads. The chain runs end to end and A1 oracle recovers the grasp to
+**0.0004 mm / 0.008°**. Keep this as a regression check while building P0–P4;
+do not expand it to 300 scenes before the physical pick works.
 
 | Path | What |
 |---|---|
 | `grasp_smoke/` | pure library — geometry, grasp, dataset, detect, scorer, overlay. No ROS, no Isaac. |
 | `capture/isaac_capture.py` | Isaac Sim 5.1 Replicator capture backend |
 | `ros2_iface/` | Jazzy dataset publisher + grasp node — **written, not run** (no ROS 2 here) |
-| `tests/` | 38 tests: A0 analytic red tests, dataset/GT-isolation, scorer, PoseStamped, depth conversion |
+| `tests/` | 104 tests: geometry, pipeline, mocked YOLOE, gate, and ROS message contract |
 | `run_smoke.py` / `run_smoke.sh` | the chain, and the one command that reproduces it |
 
 ## What the demo is

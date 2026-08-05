@@ -1,0 +1,742 @@
+{
+  "asset": {
+    "path": "/home/nirty/reBot_B601_Grasp/src/reBot-Isaacsim/usd/reBot_B601_DM/reBot_B601_DM.usda",
+    "sha256_root_layer": "6b9d39de1200732c581c91e895bee412844e101006fb0c3df54259d81ee28e84"
+  },
+  "asset_compatibility": {
+    "finger_collider_refinement": {
+      "changed": [
+        {
+          "after": "convexDecomposition",
+          "before": "convexHull",
+          "prim": "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/gripper_left/gripper_left"
+        },
+        {
+          "after": "convexDecomposition",
+          "before": "convexHull",
+          "prim": "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/gripper_right/gripper_right"
+        }
+      ],
+      "changed_count": 2,
+      "deinstanced": [
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lpla",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lpla/VisualMaterials/material_25",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lcnc",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lcnc/VisualMaterials/material_26",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/gripper_left",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rpla",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rpla/VisualMaterials/material_27",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rcnc",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rcnc/VisualMaterials/material_28",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/gripper_right"
+      ],
+      "deinstanced_count": 10,
+      "persisted_to_disk": false,
+      "prims_inspected": 26
+    }
+  },
+  "checks": [
+    {
+      "asset_path": "/home/nirty/reBot_B601_Grasp/src/reBot-Isaacsim/usd/reBot_B601_DM/reBot_B601_DM.usda",
+      "name": "shipped DM USD exists",
+      "passed": true
+    },
+    {
+      "name": "referenced USD prims resolve",
+      "passed": true
+    },
+    {
+      "max_initial_world_matrix_error": 0.0,
+      "name": "session repair preserves poses",
+      "passed": true,
+      "remaining_issue_count": 0,
+      "repaired_count": 9
+    },
+    {
+      "changed": [
+        {
+          "after": "convexDecomposition",
+          "before": "convexHull",
+          "prim": "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/gripper_left/gripper_left"
+        },
+        {
+          "after": "convexDecomposition",
+          "before": "convexHull",
+          "prim": "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/gripper_right/gripper_right"
+        }
+      ],
+      "changed_count": 2,
+      "deinstanced": [
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lpla",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lpla/VisualMaterials/material_25",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lcnc",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lcnc/VisualMaterials/material_26",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/gripper_left",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rpla",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rpla/VisualMaterials/material_27",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rcnc",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rcnc/VisualMaterials/material_28",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/gripper_right"
+      ],
+      "deinstanced_count": 10,
+      "name": "finger colliders refined from convexHull to convexDecomposition",
+      "passed": true,
+      "persisted_to_disk": false,
+      "prims_inspected": 26
+    },
+    {
+      "name": "PhysX articulation configured for contact",
+      "note": "self-collision off (coarse convex hulls); external object contacts remain enabled",
+      "passed": true,
+      "position_iterations": 32,
+      "self_collisions": false
+    },
+    {
+      "actual": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4",
+        "joint5",
+        "joint6",
+        "gripper_joint1",
+        "gripper_joint2"
+      ],
+      "name": "exact eight-DOF name order",
+      "passed": true
+    },
+    {
+      "bound": [
+        true,
+        true
+      ],
+      "dynamic_friction": 1.1,
+      "name": "friction material bound to both fingers",
+      "passed": true,
+      "static_friction": 1.2
+    },
+    {
+      "jaw_midpoint_world_m": [
+        0.25278884172439575,
+        0.027941521257162094,
+        0.2931644469499588
+      ],
+      "name": "jaw midpoint measured at grasp pose",
+      "passed": true
+    },
+    {
+      "best_rise_m": 0.12147678434848785,
+      "margin_m": 0.015,
+      "name": "a lift pose clears the required rise with margin",
+      "passed": true,
+      "required_m": 0.05
+    },
+    {
+      "jaw_z_m": 0.29316452145576477,
+      "name": "pedestal fits under the jaw",
+      "passed": true,
+      "pedestal_top_m": 0.24316452145576478
+    },
+    {
+      "jaw_open_m": [
+        0.25278887897729874,
+        0.027941392734646797,
+        0.29316452145576477
+      ],
+      "jaw_ready_m": [
+        0.25278889387845993,
+        0.02794157713651657,
+        0.29316458106040955
+      ],
+      "name": "jaw returns to the calibrated grasp pose after the scene is built",
+      "note": "a large shift means the arm was deflected by the scene, which would place the object off its support",
+      "passed": true,
+      "shift_m": 1.9436771300764667e-07
+    },
+    {
+      "expected_z_m": 0.29316452145576477,
+      "name": "object settles on the pedestal without exploding",
+      "passed": true,
+      "settled_world_m": [
+        0.2527862787246704,
+        0.027941804379224777,
+        0.29316461086273193
+      ]
+    },
+    {
+      "first_contact_grip_cmd_m": 0.02049999999999995,
+      "name": "P1: both fingers make contact with the object before closing",
+      "passed": true
+    },
+    {
+      "first_contact_grip_cmd_m": 0.02049999999999995,
+      "implied_finger_inset_m": 0.0004999999999999484,
+      "name": "P1: contact occurs strictly between fully open and fully closed",
+      "note": "inset is how far each convex-hull finger surface sits inside its link origin; link-origin separation is not the aperture",
+      "open_grip_m": 0.0715,
+      "passed": true
+    },
+    {
+      "arm_tracking_error_rad": [
+        -9.559094905853271e-06,
+        2.7172088623017565e-05,
+        0.0049142963886260604,
+        0.004717872738838197,
+        -3.679585456848114e-05,
+        -0.005877481162548066
+      ],
+      "jaw_rise_m": 0.0807194709777832,
+      "name": "P2 diagnostic: the arm itself reached the lift pose",
+      "passed": true
+    },
+    {
+      "name": "P2: object rises at least 50 mm",
+      "passed": true,
+      "required_m": 0.05,
+      "rise_m": 0.05979281663894653
+    },
+    {
+      "hold_seconds": 1.0,
+      "hold_z_range_m": 2.980232238769531e-07,
+      "name": "P2: object is still held after the hold interval",
+      "passed": true
+    },
+    {
+      "name": "P2: object state stays finite",
+      "object_world_m": [
+        0.20374082028865814,
+        0.020907355472445488,
+        0.35295742750167847
+      ],
+      "passed": true
+    },
+    {
+      "fall_m": 0.32160914316773415,
+      "name": "release: the object falls when the jaw opens (no hidden attachment)",
+      "note": "an object that does not fall when released was never held by contact",
+      "passed": true,
+      "required_m": 0.01
+    },
+    {
+      "max_base_angle_drift_rad": 0.00010704479785236053,
+      "max_base_position_drift_m": 5.14986514600679e-06,
+      "name": "fixed base stays stable through the pick",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "finger_geometry": {
+    "gripper_left": {
+      "local_max_m": [
+        0.2603101577828385,
+        0.05864955235189758,
+        0.21129465837470296
+      ],
+      "local_min_m": [
+        0.17170048579992328,
+        -0.03425011849629979,
+        0.17208070557083627
+      ],
+      "local_size_m": [
+        0.08860967198291522,
+        0.09289967084819736,
+        0.03921395280386669
+      ],
+      "path": "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left",
+      "valid": true
+    },
+    "gripper_right": {
+      "local_max_m": [
+        0.2603101577819825,
+        0.03425020459809107,
+        0.2113207237877803
+      ],
+      "local_min_m": [
+        0.17170048579901015,
+        -0.058649466250161625,
+        0.17210677098398258
+      ],
+      "local_size_m": [
+        0.08860967198297237,
+        0.0928996708482527,
+        0.03921395280379772
+      ],
+      "path": "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right",
+      "valid": true
+    }
+  },
+  "finished_utc": "2026-08-05T19:47:28Z",
+  "grasp_pose": {
+    "arm_q_rad": [
+      0.125,
+      -0.497,
+      -0.407,
+      -0.095,
+      0.027,
+      -0.019
+    ],
+    "gripper_open_m": 0.0715,
+    "jaw_midpoint_world_m": [
+      0.25278884172439575,
+      0.027941521257162094,
+      0.2931644469499588
+    ]
+  },
+  "lift_calibration": {
+    "chosen": {
+      "arm_q_rad": [
+        0.125,
+        -0.21699999999999997,
+        -0.45699999999999996,
+        -0.095,
+        0.027,
+        -0.019
+      ],
+      "index": 4,
+      "lateral_m": 0.06011579332037971,
+      "rise_m": 0.08114942908287048
+    },
+    "trials": [
+      {
+        "delta": [
+          0.0,
+          0.1,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "index": 0,
+        "jaw_world_m": [
+          0.23637895286083221,
+          0.02587806060910225,
+          0.31595370173454285
+        ],
+        "lateral_m": 0.016539114920714415,
+        "rise_m": 0.022789254784584045,
+        "within_limits": true
+      },
+      {
+        "delta": [
+          0.0,
+          0.15,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "index": 1,
+        "jaw_world_m": [
+          0.2273421362042427,
+          0.024742810055613518,
+          0.32670414447784424
+        ],
+        "lateral_m": 0.025646960349723705,
+        "rise_m": 0.03353969752788544,
+        "within_limits": true
+      },
+      {
+        "delta": [
+          0.0,
+          0.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "index": 2,
+        "jaw_world_m": [
+          0.21777872741222382,
+          0.023539621382951736,
+          0.33698971569538116
+        ],
+        "lateral_m": 0.035285759544806734,
+        "rise_m": 0.04382526874542236,
+        "within_limits": true
+      },
+      {
+        "delta": [
+          0.0,
+          0.25,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "index": 3,
+        "jaw_world_m": [
+          0.20771552622318268,
+          0.02227524109184742,
+          0.3467830717563629
+        ],
+        "lateral_m": 0.04542808053598273,
+        "rise_m": 0.053618624806404114,
+        "within_limits": true
+      },
+      {
+        "delta": [
+          0.0,
+          0.28,
+          -0.05,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "index": 4,
+        "jaw_world_m": [
+          0.1931423917412758,
+          0.020444214344024658,
+          0.3743138760328293
+        ],
+        "lateral_m": 0.06011579332037971,
+        "rise_m": 0.08114942908287048,
+        "within_limits": true
+      },
+      {
+        "delta": [
+          0.0,
+          0.32,
+          -0.05,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "index": 5,
+        "jaw_world_m": [
+          0.18365459889173508,
+          0.019249852746725082,
+          0.381172776222229
+        ],
+        "lateral_m": 0.06967846606764974,
+        "rise_m": 0.0880083292722702,
+        "within_limits": true
+      },
+      {
+        "delta": [
+          0.0,
+          0.36,
+          -0.1,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "index": 6,
+        "jaw_world_m": [
+          0.162820503115654,
+          0.016629083082079887,
+          0.4082849323749542
+        ],
+        "lateral_m": 0.09067675120714389,
+        "rise_m": 0.11512048542499542,
+        "within_limits": true
+      },
+      {
+        "delta": [
+          0.0,
+          0.42,
+          -0.12,
+          0.05,
+          0.0,
+          0.0
+        ],
+        "index": 7,
+        "jaw_world_m": [
+          0.14659391343593597,
+          0.0145864337682724,
+          0.41464123129844666
+        ],
+        "lateral_m": 0.107031402663083,
+        "rise_m": 0.12147678434848785,
+        "within_limits": true
+      }
+    ]
+  },
+  "object": {
+    "grasp_clearance_above_support_m": 0.05,
+    "height_m": 0.1,
+    "mass_kg": 0.05,
+    "parked_world_m": [
+      0.25278887897729874,
+      0.027941392734646797,
+      0.7931645214557648
+    ],
+    "pedestal_top_m": 0.24316452145576478,
+    "placed_world_m": [
+      0.25278889387845993,
+      0.02794157713651657,
+      0.29316452145576477
+    ],
+    "settled_world_m": [
+      0.2527862787246704,
+      0.027941804379224777,
+      0.29316461086273193
+    ],
+    "size_m": 0.04
+  },
+  "p1_contact": {
+    "both_fingers_resisted": true,
+    "first_contact_grip_cmd_m": 0.02049999999999995,
+    "implied_aperture_m": 0.0409999999999999,
+    "implied_finger_inset_m": 0.0004999999999999484,
+    "n_steps": 102,
+    "object_size_m": 0.04,
+    "trace_tail": [
+      {
+        "grip_cmd_m": 0.023999999999999952,
+        "measured_m": [
+          0.02399914152920246,
+          0.024001089856028557
+        ],
+        "object_z_m": 0.29316461086273193,
+        "per_finger_error_m": [
+          8.584707974906847e-07,
+          1.0898560286048964e-06
+        ],
+        "tracking_error_m": 1.0898560286048964e-06
+      },
+      {
+        "grip_cmd_m": 0.02349999999999995,
+        "measured_m": [
+          0.023499125614762306,
+          0.023501109331846237
+        ],
+        "object_z_m": 0.29316452145576477,
+        "per_finger_error_m": [
+          8.743852376452699e-07,
+          1.1093318462856994e-06
+        ],
+        "tracking_error_m": 1.1093318462856994e-06
+      },
+      {
+        "grip_cmd_m": 0.02299999999999995,
+        "measured_m": [
+          0.022999143227934837,
+          0.023001089692115784
+        ],
+        "object_z_m": 0.2931644320487976,
+        "per_finger_error_m": [
+          8.567720651136979e-07,
+          1.0896921158326522e-06
+        ],
+        "tracking_error_m": 1.0896921158326522e-06
+      },
+      {
+        "grip_cmd_m": 0.02249999999999995,
+        "measured_m": [
+          0.02249913290143013,
+          0.02250109799206257
+        ],
+        "object_z_m": 0.2931644320487976,
+        "per_finger_error_m": [
+          8.670985698205902e-07,
+          1.0979920626180695e-06
+        ],
+        "tracking_error_m": 1.0979920626180695e-06
+      },
+      {
+        "grip_cmd_m": 0.02199999999999995,
+        "measured_m": [
+          0.02199912630021572,
+          0.022001104429364204
+        ],
+        "object_z_m": 0.29316452145576477,
+        "per_finger_error_m": [
+          8.736997842290206e-07,
+          1.1044293642542558e-06
+        ],
+        "tracking_error_m": 1.1044293642542558e-06
+      },
+      {
+        "grip_cmd_m": 0.02149999999999995,
+        "measured_m": [
+          0.021604226902127266,
+          0.021637430414557457
+        ],
+        "object_z_m": 0.29321590065956116,
+        "per_finger_error_m": [
+          0.00010422690212731622,
+          0.00013743041455750726
+        ],
+        "tracking_error_m": 0.00013743041455750726
+      },
+      {
+        "grip_cmd_m": 0.02099999999999995,
+        "measured_m": [
+          0.021554183214902878,
+          0.021518906578421593
+        ],
+        "object_z_m": 0.29326266050338745,
+        "per_finger_error_m": [
+          0.0005541832149029285,
+          0.0005189065784216434
+        ],
+        "tracking_error_m": 0.0005541832149029285
+      },
+      {
+        "grip_cmd_m": 0.02049999999999995,
+        "measured_m": [
+          0.02143487147986889,
+          0.02140945941209793
+        ],
+        "object_z_m": 0.29332634806632996,
+        "per_finger_error_m": [
+          0.00093487147986894,
+          0.0009094594120979821
+        ],
+        "tracking_error_m": 0.00093487147986894
+      }
+    ],
+    "tracking_error_tol_m": 0.0003
+  },
+  "p2_pick": {
+    "arm_tracking_error_rad": [
+      -9.559094905853271e-06,
+      2.7172088623017565e-05,
+      0.0049142963886260604,
+      0.004717872738838197,
+      -3.679585456848114e-05,
+      -0.005877481162548066
+    ],
+    "hold_samples": [
+      {
+        "object_world_m": [
+          0.20374098420143127,
+          0.020906846970319748,
+          0.3529573082923889
+        ],
+        "t_s": 0.0
+      },
+      {
+        "object_world_m": [
+          0.20374076068401337,
+          0.020907118916511536,
+          0.3529573678970337
+        ],
+        "t_s": 0.1
+      },
+      {
+        "object_world_m": [
+          0.20374180376529694,
+          0.020907049998641014,
+          0.35295751690864563
+        ],
+        "t_s": 0.2
+      },
+      {
+        "object_world_m": [
+          0.20374074578285217,
+          0.020907172933220863,
+          0.35295745730400085
+        ],
+        "t_s": 0.3
+      },
+      {
+        "object_world_m": [
+          0.20374168455600739,
+          0.020907064899802208,
+          0.35295742750167847
+        ],
+        "t_s": 0.4
+      },
+      {
+        "object_world_m": [
+          0.20374177396297455,
+          0.020907387137413025,
+          0.35295727849006653
+        ],
+        "t_s": 0.5
+      },
+      {
+        "object_world_m": [
+          0.20374169945716858,
+          0.020907657220959663,
+          0.3529573976993561
+        ],
+        "t_s": 0.6
+      },
+      {
+        "object_world_m": [
+          0.20374175906181335,
+          0.02090730145573616,
+          0.3529573976993561
+        ],
+        "t_s": 0.7
+      },
+      {
+        "object_world_m": [
+          0.2037411481142044,
+          0.020907318219542503,
+          0.3529575765132904
+        ],
+        "t_s": 0.8
+      },
+      {
+        "object_world_m": [
+          0.20374074578285217,
+          0.020907290279865265,
+          0.3529573678970337
+        ],
+        "t_s": 0.9
+      }
+    ],
+    "hold_seconds": 1.0,
+    "hold_z_range_m": 2.980232238769531e-07,
+    "jaw_after_lift_m": [
+      0.1933576837182045,
+      0.020303867291659117,
+      0.37388405203819275
+    ],
+    "jaw_rise_m": 0.0807194709777832,
+    "lift_arm_q_rad": [
+      0.125,
+      -0.21699999999999997,
+      -0.45699999999999996,
+      -0.095,
+      0.027,
+      -0.019
+    ],
+    "measured_arm_after_lift_rad": [
+      0.12499044090509415,
+      -0.21697282791137695,
+      -0.4520857036113739,
+      -0.0902821272611618,
+      0.02696320414543152,
+      -0.024877481162548065
+    ],
+    "measured_grip_after_lift_m": [
+      0.019636213779449463,
+      0.019284265115857124
+    ],
+    "object_after_lift_m": [
+      0.20374082028865814,
+      0.020907355472445488,
+      0.35295742750167847
+    ],
+    "object_after_squeeze_m": [
+      0.2525976300239563,
+      0.02816133387386799,
+      0.29360535740852356
+    ],
+    "rise_m": 0.05979281663894653,
+    "squeeze_cmd_m": 0.01699999999999995,
+    "squeeze_depth_m": 0.0034999999999999996
+  },
+  "passed": true,
+  "probe": "b601_pick",
+  "release": {
+    "fall_m": 0.32160914316773415,
+    "object_after_release_m": [
+      0.12209558486938477,
+      -0.05749078094959259,
+      0.03134828433394432
+    ],
+    "release_cmd_m": 0.04049999999999995
+  },
+  "schema_version": "1.0.0",
+  "started_utc": "2026-08-05T19:47:08Z",
+  "state_monitor": {
+    "max_base_angle_drift_rad": 0.00010704479785236053,
+    "max_base_position_drift_m": 5.14986514600679e-06,
+    "samples": 2019
+  }
+}

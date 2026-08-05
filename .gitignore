@@ -10,7 +10,17 @@ log/
 # recorded datasets and generated artifacts — regenerate with ./run_smoke.sh
 bags/
 data/
-artifacts/
+
+# artifacts/ is generated, EXCEPT the two canonical acceptance records. Those are
+# the evidence for P0 and P2 and must survive a clean checkout; everything else
+# (datasets, overlays, superseded runs) is reproducible and stays out.
+artifacts/*
+!artifacts/main_goal/
+artifacts/main_goal/*
+!artifacts/main_goal/b601_asset_probe.json
+!artifacts/b601_pick/
+artifacts/b601_pick/*
+!artifacts/b601_pick/b601_pick.json
 *.mcap
 *.db3
 *.npy

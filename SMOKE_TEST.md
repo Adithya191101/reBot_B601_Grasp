@@ -233,6 +233,14 @@ sensor frames only — a test parses its AST to prove it contains no executable
 reference to `load_labels`, `gt_mask` or `grasp_gt_position` — and emits
 checksummed prediction masks. Scoring loads ground truth afterwards.
 
+**Pose orientation conventions are explicit.** The original
+`grasp_to_pose_stamped()` remains a backward-compatible analysis output whose
+quaternion is the vision basis `[grip, open, approach]`; it is not a robot TCP
+target. `grasp_to_b601_tcp_pose_stamped()` is the control-boundary function and
+maps that basis to vendor B601 TCP axes (`X=-approach`, `Y=open`, right-handed
+`Z`) before applying `base <- camera`. No ROS node has been switched to the TCP
+path yet; doing so requires the controller to name and validate its physical TCP.
+
 **Dataset writes are locked.** Capturing into an existing non-empty directory
 raises `DatasetExistsError` instead of overwriting a possibly-sealed dataset.
 Capture metadata is written *before* the manifest is sealed, and the manifest's

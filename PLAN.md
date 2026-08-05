@@ -1,7 +1,8 @@
-# reBot B601-DM Visual Grasping — Isaac Sim + Isaac ROS, simulation only
+# reBot B601-DM Visual Grasping — first physics-driven pick in Isaac Sim
 
-**Written:** 2026-08-04 · **Rev 2.1 (audited)** — evaluation stratified, capture/replay contract
-fixed, release-candidate window reserved
+**Written:** 2026-08-04 · **Rev 3 (outcome-first), 2026-08-05** — one
+contact-driven B601-DM grasp-and-lift is the primary goal; evaluation and full
+ROS integration follow only after that loop closes.
 **Parent plan:** `~/docs/sota-gap-plan-aug2026.md` (this is an expanded, learning-first P1)
 **Reference demo:** <https://wiki.seeedstudio.com/rebot_arm_b601_dm_grasping_demo/>
 
@@ -15,14 +16,19 @@ fixed, release-candidate window reserved
 > **rev 2.1 audited** splits oracle scoring into A0/A1/A2 (a single oracle bar conflated a code
 > bug with legitimate quantile/perspective error), fixes the capture→replay contract, decouples
 > M2 from the unvalidated DM USD, reserves Aug 21–28 for release, and puts M3 fully after Aug 29.
+> **rev 3** keeps the completed smoke work as regression evidence but reverses the critical
+> path: validate the shipped articulation → validate two-finger contact → make one fixed
+> physics-driven pick → replace fixed waypoints with GT IK → connect the existing perception.
 
 ---
 
-## 0. The idea in one line
+## 0. The goal in one line
 
-Seeed's demo is a hand-rolled Python grasping pipeline on real hardware. NVIDIA's *Isaac for
-Manipulation* is the same pipeline shape, GPU-accelerated, in ROS 2, in Isaac Sim.
-**Start from what already runs, substitute one piece at a time.**
+Make the shipped B601-DM asset grasp and lift one known object in Isaac Sim using
+physics-driven arm and finger motion. The first pick deliberately uses known object placement
+and scripted joint targets. It does **not** require a perception benchmark, ROS 2, BYOR,
+MoveIt, cuMotion, or publication. Once that physical loop works, substitute one input at a
+time: fixed joints → GT-pose IK → oracle perception pose → YOLOE pose.
 
 | Seeed demo (real, Python) | Your version (sim, ROS 2) | Difficulty |
 |---|---|---|
@@ -78,41 +84,90 @@ defaults to FastRTPS and a mismatch looks exactly like a broken pipeline.
 
 ---
 
-## 3. Milestones
+## 3. Critical path — one B601-DM pick
 
-**Hard rule: something ships Aug 29, and it is M2.**
+**P0, P1 and P2 are complete** (2026-08-05): 59.8 mm rise, 1.0 s hold, 3/3
+repetitions, 20/20 checks — see `PICK.md` and `artifacts/b601_pick/b601_pick.json`.
+**The next deliverable is P3**, the demo's own `move_to_traj` interface — not a
+benchmark or framework integration.
 
-| # | By | Deliverable | Status |
-|---|---|---|---|
-| **GO/NO-GO** | **Aug 8** | End-to-end 10-scene chain passes (§5.2.1) | **gate** |
-| **M1** | Aug 10 | Vendor code read (§5.1); vendor MoveIt demo runs (mock hw); Isaac ROS container up; S0 gate passed; **Branch B model frozen (§5.2.5)** | required |
-| **M2** | **Aug 20** | Free-camera scene (§5.2.6) + 300-scene dataset + offline `RGB-D → grasp PoseStamped`, all strata evaluated (§5.2) | **required — load-bearing** |
-| **RC** | Aug 21–28 | Release-candidate window (§5.4) — clean-container repro, locked-test run, checksums, CI, licensing, docs, video, buffer | required |
-| **M4** | **Aug 29** | **Publication: demo video + public repo. Start applying.** | required |
-| **M3** | post-Aug 29 | Stock reference pick-and-place in Isaac Sim (soup can) | **may not start until the Aug 29 RC reproduces cleanly** |
-| **M5a** | Sep 5 | DM USD validated + **ROS 2 Action Graph** + raw joint round-trip + `TopicBasedSystem` | |
-| **M5b** | Sep 12 | B601 **framework extension** + two packages + MoveIt/OMPL execution | |
-| **M5c** | Sep 19 | Flattened URDF + XRDF + **cuMotion** | |
-| **M6** | Sep 26 | Active two-finger gripper, contact, attachment, authored grasps | |
-| **M7** | Oct 10 | Honest depth, Replicator-trained perception, eval protocol, C++ node, writeup | |
+### 3.1 What counts as the first pick
 
-**M3 is out of August entirely.** It is not a fallback and not a stretch task — it may begin
-**only after the Aug 29 release candidate has been reproduced cleanly from a fresh clone and
-container**. When it does start it competes directly with M5a; take it only if it doesn't move
-Sep 5.
+- Use the shipped B601-DM USD and an object initially supported by the scene.
+- Command the arm and both fingers with articulation position targets while physics steps.
+  `set_joint_positions` may be used for an explicit reset only; it is never scored motion.
+- Both `gripper_joint1` and `gripper_joint2` must close on the object through collision/contact.
+- The object must rise at least **50 mm** and remain held for at least **1.0 s**, with finite
+  joint and object state. Save a machine-readable JSON result and, optionally, a video.
+- Teleporting, kinematic parenting, or attaching the object does not count. An assisted
+  attachment experiment must be labelled diagnostic and scored separately.
+- First make one successful run, then require 3/3 repetitions with the same seed before moving on.
 
-**Why M2 moved to Aug 20:** rev 2.1 added an Action Graph to S0 and stratified evaluation, a
-300-scene capture pipeline, a debug overlay, and confidence intervals to M2 — on a box with no
-ROS installed, in the week the parent plan already called the riskiest. The dataset does **not**
-shrink: scene count is compute, not your time, and cutting a preregistered test set under
-deadline pressure is what would actually damage the result.
+Fixed joint waypoints and ground-truth placement are intentionally allowed for P2. They isolate
+asset, drive, collision, and contact problems before IK or perception can obscure them.
 
-M5 is split into three because "cuMotion by Sep 12" was not credible — the Flexiv template
-clarifies the sequence but doesn't compress it.
+### 3.2 Executable sequence
+
+| Stage | Implement | Pass gate |
+|---|---|---|
+| **P0 · asset/control** | `scripts/b601_asset_probe.py`: load the existing DM USD; assert `joint1`…`joint6` plus the two prismatic finger DOFs; apply runtime gains; command safe targets through physics; measure link poses and aperture. | Finite/stable articulation, safe target tracked without teleport, and finger separation changes monotonically at 0/mid/max. |
+| **P1 · contact** | Put a lightweight ~40 mm object at the measured jaw location; tune only explicit collider/friction/contact parameters; close both fingers. | Object settles, both fingers make contact, and no tunnelling or numerical explosion occurs. |
+| **P2 · fixed pick** | `HOME → OPEN → GRASP_POSE → CLOSE → LIFT → HOLD`, using smooth joint targets and measured feedback. Place the fixture from a known reachable `q_grasp` so IK is not yet a dependency. | Physical ≥50 mm lift and ≥1 s hold, without teleport or attachment; then 3/3 same-seed runs. |
+| **P3 · `move_to_traj`** | Implement the demo's *own* robot interface against the Isaac articulation: `move_to_traj(x,y,z,rx,ry,rz,duration)`, `open_gripper(distance_m)`, `grasp(force)`, `release_gripper()`, `get_tcp_pose()`. IK via the pinned `reBotArm_control_py` (Pinocchio), the same library the demo uses. Reuse the P2 executor and scorer unchanged. | The same contact-based pick succeeds when commanded by Cartesian TCP pose instead of joint waypoints. |
+| **P3b · hand-eye** | Implement the demo's `collect_handeye_eih.py` equivalent: solve `AX=XB` (Tsai–Lenz) for the eye-in-hand extrinsic, using the ArUco path the vendor ships. | Solved extrinsic matches the sim's known camera mount to a stated tolerance — the one validation hardware cannot give you. |
+| **P4 · perception** | Feed the executor the existing grasp estimate in-process: oracle first, then the pinned YOLOE segmentation checkpoint. | One perception-derived physical pick; Ultralytics approval gates YOLOE only, not P0–P3b. |
+
+P0 must report the exact DOF order and limits, runtime gains, measured position error, base
+stability, and unordered finger-link separation at 0/mid/max. Measuring the composed asset
+sidesteps the unresolved π mount comparison: the local simulated pads, not cross-tree joint
+origins, define the aperture used by P1–P4.
+
+P1 begins with a simple light cuboid and high friction. Infer whether zero or 0.0715 m is open
+from measured separation; do not assume it from the joint label. P2 writes its result under
+`artifacts/b601_pick/` (gitignored). P3 may use the already available Pinocchio stack with the
+DM URDF; XRDF and cuMotion are unnecessary here. P4 preserves the known perspective/quantile
+limitations and changes only the source of the target pose.
+
+**Why P3 is named after `move_to_traj` and not "IK".** The demo's entire robot
+interface is four calls — `move_to_traj`, `open_gripper`/`grasp`/`release_gripper`,
+`get_tcp_pose` — implemented on Pinocchio inside `reBotArm_control_py`
+(`drivers/robot/grasp_driver.py:136`, `scripts/main.py:54,92,98`). Naming the stage
+after that interface keeps it anchored: reproducing the demo means implementing
+*those functions* against the Isaac articulation, not adopting a different motion
+architecture. See §6 for what was cut on those grounds.
+
+**Why hand-eye calibration is a stage and not a footnote.** It is a whole script in
+the demo (`collect_handeye_eih.py`, `calibration/hand_eye.py`, `aruco_pose.py`) and
+the parent plan calls TF/calibration rigor the #1 silent killer. It was missing from
+the ladder entirely. In simulation it is *cheaper and stronger* than on hardware:
+the true extrinsic is known, so the `AX=XB` solver can be validated against ground
+truth — a check that is impossible on the real arm, where the answer is what you are
+trying to find.
+
+### 3.3 Existing smoke suite = regression support
+
+The 104 ROS-free tests and completed ten-scene Isaac chain remain valuable for grasp geometry,
+depth conversion, serialization/replay, scoring, and overlays. They do not move the B601,
+exercise contacts, or prove a pick. Run them after relevant changes, but do not collect or tune
+a 300-scene benchmark before P2.
+
+### 3.4 Explicitly deferred until after P2
+
+- the 300-scene evaluation, confidence intervals, and broad model tuning;
+- ROS 2 Jazzy, the Action Graph, `TopicBasedSystem`, BYOR, and enum/framework extensions;
+- MoveIt, cuMotion, flattened URDF/XRDF, and the stock soup-can reference workflow;
+- release-candidate/publication work, licensing/data distribution, domain randomization, and
+  larger episode counts.
+
+The audited material below is preserved as a reference for those later phases. It is no longer
+the current execution order.
 
 ---
 
-## 4. S0 — Environment (Aug 4–6)
+## 4. Deferred infrastructure — ROS 2 Jazzy + Isaac ROS
+
+This section resumes after P2. Its S0 gate is required for the later ROS/TopicBasedSystem path,
+not for the direct Isaac P0–P4 learning loop.
 
 1. `sudo apt-mark hold` the NVIDIA driver packages.
 2. ROS 2 Jazzy + `ros-jazzy-rmw-cyclonedds-cpp` on the host.
@@ -343,108 +398,52 @@ Not slack. This week has its own deliverables, and M2 work does not spill into i
 
 ---
 
-## 6. S5 — Bring the B601-DM in (Sep) → **M5a/b/c**
+## 6. Cut: BYOR, XRDF, cuMotion, MoveIt — not on the path to this goal
 
-### 6.0 Assets — select a canonical source, then validate. Do *not* start by converting.
+**Removed 2026-08-05.** Earlier revisions planned two authored Isaac ROS packages, a
+`RobotType`/`GripperType` framework patch, a flattened URDF + XRDF, and cuMotion
+planning. **None of that appears in the demo being reproduced.** Verified in the
+pinned tree: `scripts/main.py` moves the arm with
+`controller.move_to_traj(x, y, z, rx, ry, rz, duration)` (`:54,92,98`) and
+`drivers/robot/grasp_driver.py:136` imports `reBotArm_control_py.kinematics` —
+Pinocchio. There is no ROS, MoveIt, cuMotion or XRDF anywhere in the demo's control
+path.
 
-⚠️ **A DM USD already exists** — `src/reBot-Isaacsim/usd/reBot_B601_DM/reBot_B601_DM.usda`, with
-`payloads/` for base, robot, geometries, materials, and physics (`physx`, `physics`, `mujoco`).
-The "RS-variant only" claim is **false** for the current tree. The task is
-**select → validate → patch or regenerate only if required**, not convert.
+So this work is **cut, not deferred**. Deferring it left a large, plausible-looking
+backlog that was never going to serve the goal, and kept pulling the critical path
+toward a different architecture. If the ROS/Isaac-ROS integration is ever wanted it
+is a *separate* project with its own justification, not a later phase of this one.
 
-⚠️ **The DM USD has no ROS 2 Action Graph.** Verified — no OmniGraph/ROS2Publish prims. Author
-it: **clock, joint-state publisher, joint-command subscriber, articulation controller.** Without
-it `TopicBasedSystem` has nothing to talk to. This is **M5a**, prerequisite to everything else.
+The full removed text is recoverable from git history (`git show d7a7fa5:PLAN.md`).
 
-⚠️ **The MJCF parity model is the RS arm, not DM.** `mjcf/rebot_devarm/rebot_devarm.xml` uses
-joint classes `rs06`/`rs00`, gripper joints `joint_left`/`joint_right`, joint4 range
-`-1.79 1.69` (DM URDF: −1.87). **Adapt the technique; it is not DM ground truth.**
+### 6.1 The two asset facts worth keeping
 
-Also verify actuator limits (URDF claims 50 rad/s joints 1–3, 200 rad/s joints 4–6 — 200 rad/s ≈
-1,900 RPM at the joint) against Damiao DM4310/DM4340P datasheets, override, and document the
-override. `joint4` lower limit −1.87 rad.
+These were embedded in the cut section but are properties of the **asset**, and P0–P4
+depend on them.
 
-### 6.1 The framework extension (M5b)
+⚠️ **A DM USD ships** — `src/reBot-Isaacsim/usd/reBot_B601_DM/reBot_B601_DM.usda`,
+with `payloads/` for base, robot, geometries, materials and physics. The
+"RS-variant only" claim is false for the current tree, so the task is
+**select → validate → patch only if required**, not convert. P0 validated it.
 
-⚠️ Isaac ROS 4.5 **hard-codes** supported robots and grippers —
-`isaac_ros_manipulation_ros_python_utils/manipulator_types.py` @ `release-4.5`:
+⚠️ **The MJCF parity model is the RS arm, not DM.** `mjcf/rebot_devarm/rebot_devarm.xml`
+uses joint classes `rs06`/`rs00`, gripper joints `joint_left`/`joint_right`, and
+joint4 range `-1.79 1.69` (the DM URDF says −1.87). Adapt the cross-validation
+*technique*; it is not DM ground truth.
 
-```python
-class RobotType(ManipulatorEnum):
-    UR = 'UR'
-    FLEXIV = 'FLEXIV'
+### 6.2 The π gripper-mount question — superseded by measurement
 
-class GripperType(enum.Enum):
-    ROBOTIQ_2F_140 = 'robotiq_2f_140'
-    ROBOTIQ_2F_85  = 'robotiq_2f_85'
-    GRAV           = 'grav'
-```
+The two DM URDFs disagree by π in the `gripper_joint` mount roll
+(`reBot-Isaacsim/.../reBot_B601_DM.urdf:251` has `rpy="3.1416 -1.5708 0"`;
+`reBotArmController_ROS2/.../reBot_B601_DM_with_gripper.urdf:435` has
+`rpy="0 -1.5708 0"`), while everything below the mount is byte-identical and the
+mesh sets are disjoint.
 
-Closed enums, no dynamic registration. The B601 needs a **third piece of work beyond the two
-packages**: extend `RobotType`/`GripperType` and the `DriverConfig` dispatch in `config.py`
-(including `get_gripper_type()`). Decide early: **fork** or **patch overlay** — and say which in
-the writeup. **Re-verify this quote against the SHA the container actually ships (§2).**
-
-### 6.2 The two packages
-
-**`isaac_ros_manipulation_b601_robot_description/`** (config) — `urdf/b601.xacro` with the
-**`TopicBasedSystem`** ros2_control plugin mapping `joint_commands_topic`/`joint_states_topic`
-to Isaac Sim; `srdf/`; `config/` for `initial_positions`, `joint_limits`, `kinematics_sim`,
-`moveit_sim_controllers`, `ros2_control_controllers_sim`.
-
-**`isaac_ros_manipulation_b601_driver_utils/`** (Python) — `config.py` subclassing
-`DriverConfig`; `robot_description.py`; `b601_driver_utils.py` subclassing `RobotControllerBase`
-(`get_robot_state_publisher()`, `get_moveit_group_node()`, `get_robot_control_nodes()`);
-`launch/b601_driver.launch.py`; `params/b601.yaml`; `src/isaac_sim_joint_parser_node.py`.
-
-Plus routing (`robot_launch_file_path` in the workflow YAML, `package.xml` dep in
-`isaac_ros_manipulation_bringup`) and a launch test.
-
-✅ **Your template**: `isaac_ros_manipulation_robots/` ships
-`isaac_ros_manipulation_flexiv_driver_utils` + `isaac_ros_manipulation_flexiv_robot_description`
-— a two-package third-party integration on an arm you know from `~/Flexiv_RL` (and `GRAV` is the
-Flexiv gripper, so the gripper path is worked too). `isaac_ros_manipulation_ur_isaac_sim_utils`
-is worth reading for Isaac Sim joint-state filtering. **Read both Flexiv packages end to end
-before writing B601 code.** No Franka package exists here.
-
-### 6.3 XRDF + cuMotion (M5c)
-
-Flattened URDF + `b601_gripper.xrdf`: c-space joints with acceleration and jerk limits, tool
-frames, per-link collision spheres, self-collision ignore rules. Use Isaac Sim's **Robot
-Description Editor**. **Only after §6.4 is settled.**
-
-### 6.4 ⚠️ The π gripper-mount question — verified, unresolved
-
-| Source | `gripper_joint` origin |
-|---|---|
-| `src/reBot-Isaacsim/urdf/reBot_B601_DM/urdf/reBot_B601_DM.urdf:251` | `xyz="0 0 0.15971" rpy="3.1416 -1.5708 0"` |
-| `src/reBotArmController_ROS2/.../reBot_B601_DM_with_gripper.urdf:435` | `xyz="0 0 0.15971" rpy="0 -1.5708 0"` |
-
-**Roll differs by π. Everything below the mount is byte-identical** — verified: both trees have
-`gripper_joint1 → gripper_left` at `xyz="-0.042091 2.7531E-05 -1.3031E-05" rpy="0 0 -1.5708"`
-and `gripper_joint2 → gripper_right` at `xyz="-0.042091 -2.7531E-05 1.3031E-05" rpy="0 0 1.5708"`,
-both `axis="1 0 0"`, both `limit upper="0.0715"`. **The mesh sets differ entirely** — vendor uses
-`meshes_b601_gripper/gripper_left.STL` / `gripper_right.STL`; the Isaac-sim tree uses
-`meshes/pla7_black.STL`, `pla7_green.STL`, `Rcnc.STL`, `Rpla.STL`.
-
-**How to investigate — joint and link origins are not sufficient.** Identical joint origins under
-a π-rotated mount is precisely the case where origin comparison tells you nothing.
-
-1. Compute **physical finger-pad landmark positions in world coordinates** — actual contact-face
-   points, taken from the meshes, not link frames.
-2. Do it across **several arm configurations**, not one — a single pose can be accidentally
-   symmetric.
-3. Do it at **closed, mid, and open apertures** — a mount rotation and a finger-direction
-   convention can cancel at one aperture and not others.
-4. **Compare the pad set as an unordered pair.** If the unordered geometry matches and only the
-   left/right *labels* are exchanged, this is a **convention difference, not a defect** — pick
-   one convention, document it, and move on. Only a genuine mismatch in unordered pad geometry
-   is a bug to fix.
-
-Settle this before defining TCP frames or authoring the XRDF. Either outcome is a writeup
-paragraph.
-
----
+**P0 makes this moot for P1–P4.** The probe measures the *composed simulated asset*:
+finger-link separation of 0.059 / 71.445 / 142.943 mm about a jaw midpoint that is
+invariant to 5 decimals across the sweep. Local measured geometry, not a
+cross-tree origin comparison, defines the aperture the pick uses. The question only
+returns if the vendor URDF is ever used to drive the shipped USD.
 
 ## 7. The gripper (M6)
 

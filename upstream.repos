@@ -16,3 +16,13 @@ repositories:
     type: git
     url: https://github.com/Seeed-Projects/reBot-Isaacsim.git
     version: c3ee253ca113ea3514da442684ef5d4894219374
+  # The demo's motion layer. reBot-DevArm-Grasp/README.md:122 clones exactly this
+  # URL into sdk/, and drivers/robot/grasp_driver.py:136 imports
+  # reBotArm_control_py.kinematics. It defines move_to_traj / open_gripper /
+  # grasp / get_tcp_pose -- the entire robot interface the demo uses -- on
+  # Pinocchio IK, with no ROS, MoveIt or cuMotion anywhere. It was the one repo
+  # that defines the goal's control path and the one repo that was not pinned.
+  reBotArm_control_py:
+    type: git
+    url: https://github.com/vectorBH6/reBotArm_control_py.git
+    version: 40ab6ce58fec3c58cb603efb3f30240d6f5849e4
