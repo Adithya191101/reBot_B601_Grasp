@@ -7,11 +7,21 @@ build/
 install/
 log/
 
-# recorded datasets (S2) — large, keep out of git
+# recorded datasets and generated artifacts — regenerate with ./run_smoke.sh
 bags/
 data/
+artifacts/
 *.mcap
 *.db3
+*.npy
+*.png
+!docs/**/*.png
+
+# model weights — never committed; they live in the pinned vendor tree
+*.pt
+*.pth
+*.onnx
+*.plan
 
 # python
 __pycache__/

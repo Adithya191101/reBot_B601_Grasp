@@ -17,8 +17,30 @@ vcs import src < upstream.repos
 
 ⚠️ **Pinning is incomplete.** `isaac_ros_manipulation` and `topic_based_ros2_control` arrive with
 the Isaac ROS container and are **not yet pinned** — record their exact SHAs into
-`upstream.repos` when the container workspace is first created. Nothing is *installed* yet (no
-ROS 2, no Isaac ROS); that's S0.
+`upstream.repos` when the container workspace is first created. ROS 2 and Isaac ROS are not
+installed yet; that's S0.
+
+## The ten-scene smoke test (M1 gate, PLAN.md §5.2.1)
+
+Implemented and passing on the Isaac Sim backend. **[SMOKE_TEST.md](SMOKE_TEST.md) has the
+measured results**, including the three bugs it caught and the 300-scene extrapolation.
+
+```bash
+./run_smoke.sh            # Isaac Sim if available, else analytic; installs nothing
+./run_smoke.sh analytic   # force the dependency-free backend
+```
+
+Needs only Isaac Sim's interpreter (`~/isaaclab-venv/bin/python`) — no ROS 2, no sudo, no
+downloads. Headline: the chain runs end to end; A1 oracle recovers the grasp to
+**0.0004 mm / 0.008°**; capture is **~1.1 min and ~0.40 GB for 300 scenes**.
+
+| Path | What |
+|---|---|
+| `grasp_smoke/` | pure library — geometry, grasp, dataset, detect, scorer, overlay. No ROS, no Isaac. |
+| `capture/isaac_capture.py` | Isaac Sim 5.1 Replicator capture backend |
+| `ros2_iface/` | Jazzy dataset publisher + grasp node — **written, not run** (no ROS 2 here) |
+| `tests/` | 38 tests: A0 analytic red tests, dataset/GT-isolation, scorer, PoseStamped, depth conversion |
+| `run_smoke.py` / `run_smoke.sh` | the chain, and the one command that reproduces it |
 
 ## What the demo is
 
