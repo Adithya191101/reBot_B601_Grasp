@@ -1,0 +1,440 @@
+{
+  "cartesian_lift": {
+    "achieved_tcp_m": [
+      0.2537330240011215,
+      0.0287342332303524,
+      0.3444075733423233
+    ],
+    "commanded_tcp_m": [
+      0.2532365620136261,
+      0.02883609663695097,
+      0.3447713577747345
+    ],
+    "ik_error": 1.462507955792458e-16,
+    "ik_iterations": 1000,
+    "ik_success": true,
+    "position_error_m": 0.0006238507609168287,
+    "q_solution_rad": [
+      0.12496366268345689,
+      -0.599518650443497,
+      -0.7186425327233823,
+      0.21448983650563766,
+      0.020008830826222658,
+      -0.035358364061689546
+    ],
+    "within_joint_limits": true
+  },
+  "checks": [
+    {
+      "name": "pinned IK URDF exists",
+      "passed": true,
+      "path": "/home/nirty/reBot_B601_Grasp/src/reBotArmController_ROS2/src/rebotarm_bringup/description/urdf/reBot_B601_DM_with_gripper.urdf"
+    },
+    {
+      "name": "session repair preserves poses",
+      "passed": true,
+      "remaining_issue_count": 0,
+      "repaired_count": 9
+    },
+    {
+      "changed": [
+        {
+          "after": "convexDecomposition",
+          "before": "convexHull",
+          "prim": "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/gripper_left/gripper_left"
+        },
+        {
+          "after": "convexDecomposition",
+          "before": "convexHull",
+          "prim": "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/gripper_right/gripper_right"
+        }
+      ],
+      "changed_count": 2,
+      "deinstanced": [
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lpla",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lpla/VisualMaterials/material_25",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lcnc",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/Lcnc/VisualMaterials/material_26",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_left/gripper_left",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rpla",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rpla/VisualMaterials/material_27",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rcnc",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/Rcnc/VisualMaterials/material_28",
+        "/World/reBot_B601_DM/Geometry/base_link/link1/link2/link3/link4/link5/link6/gripper_link/gripper_right/gripper_right"
+      ],
+      "deinstanced_count": 10,
+      "name": "finger colliders decomposed",
+      "passed": true,
+      "persisted_to_disk": false,
+      "prims_inspected": 26
+    },
+    {
+      "actual": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4",
+        "joint5",
+        "joint6",
+        "gripper_joint1",
+        "gripper_joint2"
+      ],
+      "name": "exact eight-DOF name order",
+      "passed": true
+    },
+    {
+      "max_deviation_from_mean_m": 0.0005826590302648131,
+      "mean_offset_ee_frame_m": [
+        -0.04176312668785447,
+        7.957057056442286e-06,
+        0.003427167860502837
+      ],
+      "name": "URDF->USD TCP offset is a constant frame offset, not pose-dependent",
+      "note": "a pose-dependent residual would mean the URDF and the shipped USD are genuinely different kinematics, not a fixed frame difference",
+      "passed": true
+    },
+    {
+      "commanded": 4,
+      "max_position_error_m": 0.00033174045274606505,
+      "name": "every move_to_traj target is solved and reached",
+      "passed": true,
+      "solved": 4,
+      "tolerance_m": 0.005
+    },
+    {
+      "expected_z_m": 0.2896425127983093,
+      "name": "object settles on its support",
+      "passed": true,
+      "settled_m": [
+        0.2532409131526947,
+        0.02812011167407036,
+        0.2896425426006317
+      ]
+    },
+    {
+      "contacted": true,
+      "first_contact_grip_cmd_m": 0.02049881869554515,
+      "n_steps": 102,
+      "name": "grasp() closes both fingers onto the object",
+      "passed": true,
+      "requested_force": 20.0,
+      "squeeze_cmd_m": 0.014498818695545151,
+      "squeeze_depth_m": 0.006
+    },
+    {
+      "achieved_tcp_m": [
+        0.2537330240011215,
+        0.0287342332303524,
+        0.3444075733423233
+      ],
+      "commanded_tcp_m": [
+        0.2532365620136261,
+        0.02883609663695097,
+        0.3447713577747345
+      ],
+      "ik_error": 1.462507955792458e-16,
+      "ik_iterations": 1000,
+      "ik_success": true,
+      "name": "move_to_traj solves the Cartesian lift",
+      "passed": true,
+      "position_error_m": 0.0006238507609168287,
+      "within_joint_limits": true
+    },
+    {
+      "name": "object slip in the jaw stays small during the Cartesian lift",
+      "note": "reported explicitly so a taller commanded lift cannot hide a poor grasp",
+      "object_rise_m": 0.05445459485054016,
+      "passed": true,
+      "slip_m": 0.006368860602378845,
+      "tcp_rise_m": 0.060823455452919006
+    },
+    {
+      "name": "P3: object rises at least 50 mm under Cartesian command",
+      "passed": true,
+      "required_m": 0.05,
+      "rise_m": 0.05445459485054016
+    },
+    {
+      "fall_m": 0.05405986309051514,
+      "name": "release_gripper() drops the object (no hidden attachment)",
+      "passed": true,
+      "required_m": 0.01
+    }
+  ],
+  "errors": [],
+  "finished_utc": "2026-08-06T04:28:56Z",
+  "grasp": {
+    "contacted": true,
+    "first_contact_grip_cmd_m": 0.02049881869554515,
+    "n_steps": 102,
+    "requested_force": 20.0,
+    "squeeze_cmd_m": 0.014498818695545151,
+    "squeeze_depth_m": 0.006
+  },
+  "ik_model": {
+    "end_effector_frame": "gripper_link",
+    "note": "pinned explicitly; the SDK's YAML chain would pick reBot-DevArm_fixend.urdf, which has no gripper at all",
+    "sha256": "f808f6f0d33274b226c7e59db6d27d1498feb7e0955a94fe30f3f215a7425fa6",
+    "urdf": "/home/nirty/reBot_B601_Grasp/src/reBotArmController_ROS2/src/rebotarm_bringup/description/urdf/reBot_B601_DM_with_gripper.urdf"
+  },
+  "move_to_traj_accuracy": [
+    {
+      "achieved_tcp_m": [
+        0.252945177257061,
+        0.028056634590029716,
+        0.3331850916147232
+      ],
+      "commanded_tcp_m": [
+        0.2527889236807823,
+        0.027941869571805,
+        0.33316423833370207
+      ],
+      "ik_error": 1.9500692661180473e-18,
+      "ik_iterations": 1000,
+      "ik_success": true,
+      "name": "up",
+      "position_error_m": 0.00019498986855051036,
+      "q_solution_rad": [
+        0.12578418260507132,
+        -0.5441387600884193,
+        -0.5830942018373306,
+        0.04434593203312308,
+        0.027750398404195298,
+        -0.018997172429983087
+      ],
+      "within_joint_limits": true
+    },
+    {
+      "achieved_tcp_m": [
+        0.2527553588151932,
+        0.058111915830522776,
+        0.29310035705566406
+      ],
+      "commanded_tcp_m": [
+        0.2527889236807823,
+        0.057941869571805,
+        0.2931642383337021
+      ],
+      "ik_error": 2.382976732985932e-17,
+      "ik_iterations": 1000,
+      "ik_success": true,
+      "name": "side",
+      "position_error_m": 0.00018472451918925532,
+      "q_solution_rad": [
+        0.3755999074138265,
+        -0.5484802281397045,
+        -0.4291173753996581,
+        -0.10311527518287346,
+        0.2775007313447023,
+        -0.014980609378496679
+      ],
+      "within_joint_limits": true
+    },
+    {
+      "achieved_tcp_m": [
+        0.22792411595582962,
+        0.028084896504878998,
+        0.3134312927722931
+      ],
+      "commanded_tcp_m": [
+        0.22778892368078232,
+        0.027941869571805,
+        0.3131642383337021
+      ],
+      "ik_error": 8.805605774329725e-17,
+      "ik_iterations": 1000,
+      "ik_success": true,
+      "name": "back",
+      "position_error_m": 0.00033174045274606505,
+      "q_solution_rad": [
+        0.16129680169534513,
+        -0.39118332089713925,
+        -0.5165609443377416,
+        0.1512567777185941,
+        0.06315008230272753,
+        -0.02070971619332224
+      ],
+      "within_joint_limits": true
+    },
+    {
+      "achieved_tcp_m": [
+        0.25283050537109375,
+        0.028053369373083115,
+        0.2931089699268341
+      ],
+      "commanded_tcp_m": [
+        0.2527889236807823,
+        0.027941869571805,
+        0.2931642383337021
+      ],
+      "ik_error": 5.727997687654049e-17,
+      "ik_iterations": 1000,
+      "ik_success": true,
+      "name": "return",
+      "position_error_m": 0.0001312091439341767,
+      "q_solution_rad": [
+        0.12572687748776448,
+        -0.5069950859578466,
+        -0.4433548936425131,
+        -0.028334051001923675,
+        0.02757456217491321,
+        -0.021966989016234797
+      ],
+      "within_joint_limits": true
+    }
+  ],
+  "p3_pick": {
+    "commanded_cartesian_lift_m": 0.065,
+    "object_held_m": [
+      0.25394919514656067,
+      0.02897879295051098,
+      0.3440971374511719
+    ],
+    "object_settled_m": [
+      0.2532409131526947,
+      0.02812011167407036,
+      0.2896425426006317
+    ],
+    "rise_m": 0.05445459485054016,
+    "slip_m": 0.006368860602378845,
+    "tcp_after_lift_m": [
+      0.2541602849960327,
+      0.028834157157689333,
+      0.3405948132276535
+    ],
+    "tcp_before_lift_m": [
+      0.2532365620136261,
+      0.02883609663695097,
+      0.2797713577747345
+    ],
+    "tcp_rise_m": 0.060823455452919006
+  },
+  "passed": true,
+  "probe": "b601_move_to_traj",
+  "release": {
+    "fall_m": 0.05405986309051514,
+    "object_released_m": [
+      0.25434812903404236,
+      0.01502660010010004,
+      0.29003727436065674
+    ]
+  },
+  "schema_version": "1.0.0",
+  "started_utc": "2026-08-06T04:28:16Z",
+  "state_monitor": {
+    "max_base_angle_drift_rad": 0.00014508309581309406,
+    "max_base_position_drift_m": 5.131066887599645e-06,
+    "samples": 2152
+  },
+  "tcp_calibration": {
+    "constant_offset_tolerance_m": 0.001,
+    "max_deviation_from_mean_m": 0.0005826590302648131,
+    "mean_offset_ee_frame_m": [
+      -0.04176312668785447,
+      7.957057056442286e-06,
+      0.003427167860502837
+    ],
+    "samples": [
+      {
+        "fk_ee_m": [
+          0.29489165778591947,
+          0.03335669302509571,
+          0.34420434974908
+        ],
+        "offset_ee_frame_m": [
+          -0.041797449839853805,
+          -8.538892075499318e-05,
+          0.0034844865773864977
+        ],
+        "q_rad": [
+          0.125,
+          -0.497,
+          -0.407,
+          -0.095,
+          0.027,
+          -0.019
+        ],
+        "sim_jaw_m": [
+          0.2527889758348465,
+          0.027941612526774406,
+          0.2931642681360245
+        ]
+      },
+      {
+        "fk_ee_m": [
+          0.29489165778591947,
+          0.03335669302509571,
+          0.34420434974908
+        ],
+        "offset_ee_frame_m": [
+          -0.04169712351288638,
+          -8.06107357610079e-07,
+          0.0035824660662443597
+        ],
+        "q_rad": [
+          0.0,
+          -0.56,
+          -0.36,
+          -0.05,
+          0.0,
+          0.0
+        ],
+        "sim_jaw_m": [
+          0.26145029067993164,
+          1.0356307029724121e-06,
+          0.24626778811216354
+        ]
+      },
+      {
+        "fk_ee_m": [
+          0.29489165778591947,
+          0.03335669302509571,
+          0.34420434974908
+        ],
+        "offset_ee_frame_m": [
+          -0.04193424088051307,
+          0.000516869856028464,
+          0.0032008511760485275
+        ],
+        "q_rad": [
+          0.3,
+          -0.43,
+          -0.48,
+          -0.15,
+          0.1,
+          0.15
+        ],
+        "sim_jaw_m": [
+          0.22913293540477753,
+          0.05608820077031851,
+          0.3542061001062393
+        ]
+      },
+      {
+        "fk_ee_m": [
+          0.29489165778591947,
+          0.03335669302509571,
+          0.34420434974908
+        ],
+        "offset_ee_frame_m": [
+          -0.04162369251816465,
+          -0.00039884659969009165,
+          0.0034408676223319622
+        ],
+        "q_rad": [
+          -0.2,
+          -0.52,
+          -0.33,
+          0.05,
+          -0.08,
+          -0.12
+        ],
+        "sim_jaw_m": [
+          0.24848754703998566,
+          -0.038843417540192604,
+          0.22058747708797455
+        ]
+      }
+    ]
+  }
+}

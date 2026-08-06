@@ -1,0 +1,360 @@
+{
+  "checks": [
+    {
+      "name": "URDF file exists",
+      "passed": true,
+      "path": "/home/nirty/reBot_B601_Grasp/src/reBotArmController_ROS2/src/rebotarm_bringup/description/urdf/reBot_B601_DM_with_gripper.urdf"
+    },
+    {
+      "name": "URDF imports without error",
+      "passed": true,
+      "prim_path": "/reBot_B601_DM_with_gripper/root_joint",
+      "seconds": 0.59
+    },
+    {
+      "empty_meshes": 0,
+      "mesh_prims": 30,
+      "name": "imported links are real meshes, not substituted primitives",
+      "passed": true,
+      "primitive_shapes": 0,
+      "total_points": 4943178
+    },
+    {
+      "issue_count": 0,
+      "name": "D1: no nested rigid bodies missing resetXformStack",
+      "passed": true
+    },
+    {
+      "enabled_self_collisions": false,
+      "name": "D2: articulation self-collision is disabled",
+      "passed": true
+    },
+    {
+      "drive_count": 8,
+      "name": "D3: importer authors non-zero drive stiffness/damping",
+      "passed": true,
+      "with_nonzero_gains": 8
+    },
+    {
+      "finger_colliders": {
+        "/colliders/gripper_left/gripper_left/node_STL_BINARY_": "convexHull",
+        "/colliders/gripper_right/gripper_right/node_STL_BINARY_": "convexHull"
+      },
+      "name": "D4: finger colliders are not coarse convex hulls",
+      "passed": false
+    },
+    {
+      "actual": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4",
+        "joint5",
+        "joint6",
+        "gripper_joint1",
+        "gripper_joint2"
+      ],
+      "expected": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4",
+        "joint5",
+        "joint6",
+        "gripper_joint1",
+        "gripper_joint2"
+      ],
+      "name": "exact eight-DOF name order matches the shipped USD",
+      "passed": true
+    },
+    {
+      "lower": [
+        -2.799999952316284,
+        -3.1399998664855957,
+        -3.1399998664855957,
+        -1.869999885559082,
+        -1.5699999332427979,
+        -3.1399998664855957,
+        0.0,
+        0.0
+      ],
+      "name": "DOF limits match the DM URDF",
+      "passed": true,
+      "upper": [
+        2.799999952316284,
+        0.0,
+        0.0,
+        1.5699999332427979,
+        1.5699999332427979,
+        3.1399998664855957,
+        0.07150000333786011,
+        0.07150000333786011
+      ]
+    },
+    {
+      "max_arm_error_rad": 0.8074750018119812,
+      "name": "imported articulation tracks a safe pose through physics drives",
+      "passed": false
+    },
+    {
+      "name": "finger separation increases zero -> mid -> max",
+      "passed": true,
+      "separations_m": [
+        2.7464499090611422e-05,
+        0.07144474431525889,
+        0.1428921153031383
+      ]
+    },
+    {
+      "abs_delta_m": [
+        3.1515066815490267e-05,
+        5.564601693319737e-07,
+        5.095880259109453e-05
+      ],
+      "name": "finger separation agrees with the shipped USD within 2 mm",
+      "passed": true,
+      "separations_m": [
+        2.7464499090611422e-05,
+        0.07144474431525889,
+        0.1428921153031383
+      ],
+      "usd_reference_m": [
+        5.897956590610169e-05,
+        0.07144530077542822,
+        0.1429430741057294
+      ]
+    }
+  ],
+  "defect_1_nested_xform_stacks": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "defect_2_self_collision": {
+    "enabled_self_collisions": false
+  },
+  "defect_3_drive_gains": {
+    "drive_count": 8,
+    "drives": {
+      "gripper_joint1": {
+        "damping": 0.0,
+        "damping_authored": true,
+        "maxForce": 100.0,
+        "stiffness": 625.0,
+        "stiffness_authored": true,
+        "type": "linear"
+      },
+      "gripper_joint2": {
+        "damping": 0.0,
+        "damping_authored": true,
+        "maxForce": 100.0,
+        "stiffness": 625.0,
+        "stiffness_authored": true,
+        "type": "linear"
+      },
+      "joint1": {
+        "damping": 0.0,
+        "damping_authored": true,
+        "maxForce": 27.0,
+        "stiffness": 625.0,
+        "stiffness_authored": true,
+        "type": "angular"
+      },
+      "joint2": {
+        "damping": 0.0,
+        "damping_authored": true,
+        "maxForce": 27.0,
+        "stiffness": 625.0,
+        "stiffness_authored": true,
+        "type": "angular"
+      },
+      "joint3": {
+        "damping": 0.0,
+        "damping_authored": true,
+        "maxForce": 27.0,
+        "stiffness": 625.0,
+        "stiffness_authored": true,
+        "type": "angular"
+      },
+      "joint4": {
+        "damping": 0.0,
+        "damping_authored": true,
+        "maxForce": 7.0,
+        "stiffness": 625.0,
+        "stiffness_authored": true,
+        "type": "angular"
+      },
+      "joint5": {
+        "damping": 0.0,
+        "damping_authored": true,
+        "maxForce": 7.0,
+        "stiffness": 625.0,
+        "stiffness_authored": true,
+        "type": "angular"
+      },
+      "joint6": {
+        "damping": 0.0,
+        "damping_authored": true,
+        "maxForce": 7.0,
+        "stiffness": 625.0,
+        "stiffness_authored": true,
+        "type": "angular"
+      }
+    },
+    "with_nonzero_gains": 8
+  },
+  "defect_4_collision_approximation": {
+    "collider_count": 10,
+    "distinct_values": [
+      "convexHull"
+    ],
+    "finger_colliders": {
+      "/colliders/gripper_left/gripper_left/node_STL_BINARY_": "convexHull",
+      "/colliders/gripper_right/gripper_right/node_STL_BINARY_": "convexHull"
+    }
+  },
+  "dofs": {
+    "count": 8,
+    "names": [
+      "joint1",
+      "joint2",
+      "joint3",
+      "joint4",
+      "joint5",
+      "joint6",
+      "gripper_joint1",
+      "gripper_joint2"
+    ]
+  },
+  "errors": [],
+  "findings": [],
+  "finished_utc": "2026-08-06T03:45:12Z",
+  "geometry": {
+    "empty_mesh_count": 0,
+    "empty_meshes": [],
+    "prim_type_counts": {
+      "Camera": 4,
+      "Material": 31,
+      "Mesh": 30,
+      "PhysicsCollisionGroup": 2,
+      "PhysicsFixedJoint": 2,
+      "PhysicsPrismaticJoint": 2,
+      "PhysicsRevoluteJoint": 6,
+      "PhysicsScene": 1,
+      "RenderProduct": 1,
+      "RenderSettings": 1,
+      "RenderVar": 1,
+      "Scope": 35,
+      "Shader": 31,
+      "Xform": 101
+    },
+    "primitive_shape_count": 0,
+    "primitive_shapes": [],
+    "total_mesh_points": 4943178
+  },
+  "gripper_sweep": {
+    "abs_delta_m": [
+      3.1515066815490267e-05,
+      5.564601693319737e-07,
+      5.095880259109453e-05
+    ],
+    "sweep": [
+      {
+        "name": "zero",
+        "separation_m": 2.7464499090611422e-05,
+        "target_each_m": 0.0
+      },
+      {
+        "name": "mid",
+        "separation_m": 0.07144474431525889,
+        "target_each_m": 0.03575
+      },
+      {
+        "name": "max",
+        "separation_m": 0.1428921153031383,
+        "target_each_m": 0.0715
+      }
+    ],
+    "usd_reference_m": [
+      5.897956590610169e-05,
+      0.07144530077542822,
+      0.1429430741057294
+    ]
+  },
+  "import": {
+    "prim_path": "/reBot_B601_DM_with_gripper/root_joint",
+    "seconds": 0.59,
+    "status": true
+  },
+  "import_config": {
+    "collision_from_visuals": false,
+    "convex_decomp": false,
+    "default_drive_strength": 1000.0,
+    "default_drive_type": "UrdfJointTargetType.JOINT_DRIVE_POSITION",
+    "default_position_drive_damping": 100.0,
+    "density": 0.0,
+    "distance_scale": 1.0,
+    "fix_base": true,
+    "import_inertia_tensor": true,
+    "merge_fixed_joints": false,
+    "self_collision": false
+  },
+  "limits": {
+    "lower": [
+      -2.799999952316284,
+      -3.1399998664855957,
+      -3.1399998664855957,
+      -1.869999885559082,
+      -1.5699999332427979,
+      -3.1399998664855957,
+      0.0,
+      0.0
+    ],
+    "upper": [
+      2.799999952316284,
+      0.0,
+      0.0,
+      1.5699999332427979,
+      1.5699999332427979,
+      3.1399998664855957,
+      0.07150000333786011,
+      0.07150000333786011
+    ]
+  },
+  "passed": false,
+  "probe": "b601_urdf_import",
+  "schema_version": "1.0.0",
+  "started_utc": "2026-08-06T03:44:59Z",
+  "state_monitor": {
+    "max_base_angle_drift_rad": 0.0,
+    "max_base_position_drift_m": 0.0,
+    "samples": 1684
+  },
+  "tracking": {
+    "max_arm_error_rad": 0.8074750018119812,
+    "measured": [
+      0.12500447034835815,
+      -0.4852241277694702,
+      -0.32633015513420105,
+      0.7124750018119812,
+      0.008347854018211365,
+      -0.013596399687230587,
+      4.643727879738435e-05,
+      0.0
+    ],
+    "target": [
+      0.125,
+      -0.497,
+      -0.407,
+      -0.095,
+      0.027,
+      -0.019,
+      0.0,
+      0.0
+    ]
+  },
+  "urdf": {
+    "exists": true,
+    "path": "/home/nirty/reBot_B601_Grasp/src/reBotArmController_ROS2/src/rebotarm_bringup/description/urdf/reBot_B601_DM_with_gripper.urdf",
+    "sha256": "f808f6f0d33274b226c7e59db6d27d1498feb7e0955a94fe30f3f215a7425fa6"
+  }
+}

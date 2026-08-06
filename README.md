@@ -17,7 +17,7 @@ Isaac Sim:
 | **P0** ✅ | Load the shipped DM USD; verify its 8 driven joints, limits, gains, tracking, and measured finger separation. |
 | **P1** ✅ | Close both physical finger joints on one object and validate contacts — first-contact aperture measured at 41.0 mm for a 40.0 mm object. |
 | **P2** ✅ | `GRASP → CLOSE → LIFT → HOLD → RELEASE` with fixed joint targets. 59.8 mm rise, 1.0 s hold, falls 321.6 mm on release. |
-| **P3** | Implement the demo's own robot interface — `move_to_traj` / `open_gripper` / `grasp` / `get_tcp_pose` — against the Isaac articulation, on the pinned `reBotArm_control_py` Pinocchio IK. |
+| **P3** ✅ | The demo's own interface — `move_to_traj` / `open_gripper` / `grasp` / `release_gripper` / `get_tcp_pose` — on the pinned `reBotArm_control_py` Pinocchio IK. Cartesian accuracy 0.13–0.33 mm; pick succeeds under Cartesian command (54.5 mm rise, 6.4 mm slip). See [P3.md](P3.md). |
 | **P3b** | Hand-eye calibration (`AX=XB`), validated against the known sim extrinsic. |
 | **P4** | Feed the same executor an oracle grasp, then a YOLOE-derived grasp. |
 
@@ -29,8 +29,9 @@ feedback. Teleporting, parenting, or attaching the object does not count.
 object through physics — **59.8 mm rise, 1.0 s hold, 3/3 repetitions, 20/20
 checks** — see **[PICK.md](PICK.md)** and `artifacts/b601_pick/b601_pick.json`.
 Getting there found a fourth asset defect: the finger colliders are convex hulls
-that leave only ~24 mm of usable jaw against 143 mm of authored travel. P3
-(`move_to_traj`), P3b (hand-eye) and P4 (perception) are next.
+that leave only ~24 mm of usable jaw against 143 mm of authored travel. **P3 also passes** — the arm is now commanded by Cartesian TCP poses through the
+demo's own Pinocchio IK ([P3.md](P3.md)). P3b (hand-eye) and P4 (perception) are
+next; it does not pick itself yet.
 
 **Upstream sources are cloned and read.** `upstream.repos` pins `reBot-DevArm-Grasp`,
 `reBotArmController_ROS2`, `reBot-Isaacsim`, and **`reBotArm_control_py`** — the demo's own

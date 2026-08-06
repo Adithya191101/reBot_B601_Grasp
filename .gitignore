@@ -21,6 +21,10 @@ artifacts/main_goal/*
 !artifacts/b601_pick/
 artifacts/b601_pick/*
 !artifacts/b601_pick/b601_pick.json
+!artifacts/b601_pick/p3_move_to_traj.json
+!artifacts/urdf_import/
+artifacts/urdf_import/*
+!artifacts/urdf_import/with_gripper.json
 *.mcap
 *.db3
 *.npy

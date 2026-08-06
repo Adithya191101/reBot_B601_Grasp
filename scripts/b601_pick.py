@@ -695,7 +695,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                     default=REPO_ROOT / "artifacts" / "b601_pick" / "b601_pick.json")
     ap.add_argument("--repair-nested-xforms", action="store_true")
     ap.add_argument("--render", action="store_true")
-    ap.add_argument("--headful", action="store_true")
+    ap.add_argument("--headful", action="store_true",
+                    help="open the Isaac Sim window (implies you want --render)")
+    ap.add_argument("--hold-open", type=float, default=0.0, metavar="SECONDS",
+                    help="after the run, keep the window open and stepping so the "
+                         "result can be inspected; 0 closes immediately")
     return ap.parse_args(argv)
 
 
@@ -715,6 +719,15 @@ def main(argv: list[str] | None = None) -> int:
         report.data["traceback"] = traceback.format_exc()
     finally:
         report.write(args.out)
+        if args.hold_open > 0 and args.headful:
+            print(f"[pick] holding the viewport open for {args.hold_open:.0f}s "
+                  f"(Ctrl-C to exit early)", flush=True)
+            try:
+                deadline = time.time() + args.hold_open
+                while time.time() < deadline and sim_app.is_running():
+                    sim_app.update()
+            except KeyboardInterrupt:
+                pass
         try:
             sim_app.close()
         except Exception:                                      # noqa: BLE001
