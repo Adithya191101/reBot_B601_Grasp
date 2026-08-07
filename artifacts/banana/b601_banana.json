@@ -1,0 +1,480 @@
+{
+  "approach": {
+    "attempts": [
+      {
+        "diag": {
+          "orientation_gap_deg": 139.6396095471024,
+          "q_start": [
+            0.07,
+            -1.213,
+            -1.051,
+            0.973,
+            0.408,
+            2.899
+          ]
+        },
+        "failed_at_waypoint": 0,
+        "ik_error": 1.5760461531454248,
+        "name": "perceived_camera_ray",
+        "ok": false,
+        "reason": "in-place reorientation unreachable"
+      },
+      {
+        "diag": {
+          "orientation_gap_deg": 176.6543470861191,
+          "q_start": [
+            0.07,
+            -1.213,
+            -1.051,
+            0.973,
+            0.408,
+            2.899
+          ]
+        },
+        "failed_at_waypoint": 0,
+        "ik_error": 1.362865131707757,
+        "name": "perceived_camera_ray+rollpi",
+        "ok": false,
+        "reason": "in-place reorientation unreachable"
+      },
+      {
+        "diag": {
+          "orientation_gap_deg": 141.0627835706184,
+          "q_start": [
+            0.07,
+            -1.213,
+            -1.051,
+            0.973,
+            0.408,
+            2.899
+          ]
+        },
+        "failed_at_waypoint": 0,
+        "ik_error": 0.16500548896264655,
+        "name": "canonical_pitch_0.7",
+        "ok": false,
+        "reason": "in-place reorientation unreachable"
+      },
+      {
+        "failed_at_waypoint": 7,
+        "name": "canonical_pitch_0.7+rollpi",
+        "ok": false,
+        "reason": "contact during descent (tracking loss)",
+        "tracking_error_rad": 0.38361409917485445
+      },
+      {
+        "diag": {
+          "orientation_gap_deg": 34.52433904917079,
+          "q_start": [
+            -0.013,
+            -2.074,
+            -0.329,
+            -1.444,
+            0.015,
+            0.316
+          ]
+        },
+        "failed_at_waypoint": 0,
+        "ik_error": 0.261088242618676,
+        "name": "canonical_pitch_0.9",
+        "ok": false,
+        "reason": "in-place reorientation unreachable"
+      },
+      {
+        "failed_at_waypoint": 6,
+        "name": "canonical_pitch_0.9+rollpi",
+        "ok": false,
+        "reason": "contact during descent (tracking loss)",
+        "tracking_error_rad": 0.270762172211098
+      },
+      {
+        "commanded_final_q": [
+          0.022,
+          -2.268,
+          -0.289,
+          -1.429,
+          0.005,
+          -2.787
+        ],
+        "max_joint_tracking_error_rad": 0.18208833848820616,
+        "measured_q": [
+          0.017,
+          -2.229,
+          -0.305,
+          -1.563,
+          -0.002,
+          -2.969
+        ],
+        "name": "canonical_pitch_0.55",
+        "ok": true,
+        "per_joint_error_rad": [
+          0.004,
+          0.039,
+          0.016,
+          0.134,
+          0.007,
+          0.182
+        ],
+        "position_error_m": 0.04625707669142123
+      },
+      {
+        "commanded_final_q": [
+          0.01,
+          -2.222,
+          -0.295,
+          -1.376,
+          -0.005,
+          0.349
+        ],
+        "max_joint_tracking_error_rad": 0.16020495598632456,
+        "measured_q": [
+          0.013,
+          -2.205,
+          -0.293,
+          -1.537,
+          0.009,
+          0.202
+        ],
+        "name": "canonical_pitch_0.55+rollpi",
+        "ok": true,
+        "per_joint_error_rad": [
+          0.003,
+          0.017,
+          0.002,
+          0.16,
+          0.014,
+          0.147
+        ],
+        "position_error_m": 0.045520390438434664
+      },
+      {
+        "commanded_final_q": [
+          0.019,
+          -1.95,
+          -0.49,
+          -0.36,
+          0.002,
+          -2.899
+        ],
+        "max_joint_tracking_error_rad": 0.19384963135332667,
+        "measured_q": [
+          0.037,
+          -1.756,
+          -0.493,
+          -0.511,
+          0.003,
+          -2.994
+        ],
+        "name": "canonical_pitch_1.1",
+        "ok": true,
+        "per_joint_error_rad": [
+          0.017,
+          0.194,
+          0.003,
+          0.151,
+          0.002,
+          0.095
+        ],
+        "position_error_m": 0.09712150420783987
+      },
+      {
+        "commanded_final_q": [
+          0.013,
+          -1.945,
+          -0.515,
+          -0.329,
+          -0.002,
+          0.236
+        ],
+        "max_joint_tracking_error_rad": 0.23265423091716242,
+        "measured_q": [
+          0.033,
+          -1.712,
+          -0.515,
+          -0.379,
+          0.092,
+          0.158
+        ],
+        "name": "canonical_pitch_1.1+rollpi",
+        "ok": true,
+        "per_joint_error_rad": [
+          0.02,
+          0.233,
+          0.0,
+          0.049,
+          0.093,
+          0.078
+        ],
+        "position_error_m": 0.09273527051007553
+      }
+    ],
+    "chosen": null
+  },
+  "checks": [
+    {
+      "name": "session repair preserves poses",
+      "passed": true,
+      "remaining_issue_count": 0,
+      "repaired_count": 9
+    },
+    {
+      "changed": 2,
+      "name": "finger colliders decomposed",
+      "passed": true
+    },
+    {
+      "name": "measured EE->TCP rotation is orthonormal",
+      "passed": true
+    },
+    {
+      "name": "a reachable table height and banana spot exist",
+      "passed": true,
+      "tried_heights": [
+        0.0015
+      ]
+    },
+    {
+      "achieved_tcp": [
+        0.3019352853298187,
+        0.00012356415390968323,
+        0.3008383959531784
+      ],
+      "ik_error": 1.2719454279998218e-16,
+      "ik_success": true,
+      "ik_usable": true,
+      "max_joint_tracking_error_rad": 0.004192551474083039,
+      "name": "ready pose reached (vendor x=0.3 z=0.3 pitch=0.7)",
+      "passed": true,
+      "position_error_m": 0.002112700921154951,
+      "q_solution": [
+        4.050643964410484e-05,
+        -1.0892496501402968,
+        -1.1643438114566713,
+        0.775093946347833,
+        2.8732685814764694e-05,
+        -0.00014973998709625635
+      ],
+      "within_limits": true
+    },
+    {
+      "name": "marker detected from the ready pose",
+      "passed": true,
+      "rgb_mean": 214.29566840277778,
+      "view_saved": "handeye_view.png"
+    },
+    {
+      "name": "effective fx within 5% of assumed",
+      "passed": true,
+      "ratio": 0.9849107548223593
+    },
+    {
+      "attempted": 18,
+      "detected": 6,
+      "name": "enough detections for hand-eye",
+      "passed": true
+    },
+    {
+      "max_deg": 160.77801105293887,
+      "mean_deg": 96.13473411688597,
+      "name": "rotation diversity sufficient for AX=XB",
+      "passed": true
+    },
+    {
+      "name": "at least one hand-eye method solved",
+      "passed": true
+    },
+    {
+      "name": "deployed hand-eye recovers the true mount within 35 mm (sim diagnostic)",
+      "passed": true,
+      "pos_err_m": 0.017378398035629707,
+      "rot_err_deg": 1.3782819734518061
+    },
+    {
+      "error_rad": 0.00019276618957553282,
+      "name": "drives track after the object spawn",
+      "passed": true,
+      "revived_by": "none-needed"
+    },
+    {
+      "name": "banana settles on the table",
+      "passed": true,
+      "settled": [
+        0.25999993085861206,
+        -4.6100467443466187e-08,
+        0.020500006154179573
+      ],
+      "table_top": 0.0015
+    },
+    {
+      "mask_px": 7218,
+      "name": "yellow-object mask found",
+      "passed": true
+    },
+    {
+      "name": "grasp estimated from the wrist image",
+      "passed": true,
+      "reason": null
+    },
+    {
+      "lateral_err_m": 0.004804484678034033,
+      "name": "perceived grasp lands on the banana (<25 mm lateral)",
+      "passed": true
+    },
+    {
+      "commanded_final_q": [
+        0.013,
+        -1.945,
+        -0.515,
+        -0.329,
+        -0.002,
+        0.236
+      ],
+      "max_joint_tracking_error_rad": 0.23265423091716242,
+      "measured_q": [
+        0.033,
+        -1.712,
+        -0.515,
+        -0.379,
+        0.092,
+        0.158
+      ],
+      "name": "pregrasp reached",
+      "ok": true,
+      "passed": false,
+      "per_joint_error_rad": [
+        0.02,
+        0.233,
+        0.0,
+        0.049,
+        0.093,
+        0.078
+      ],
+      "position_error_m": 0.09273527051007553
+    }
+  ],
+  "drive_probes": [
+    {
+      "error_rad": 0.00019,
+      "tag": "after_perception_render"
+    },
+    {
+      "error_rad": 0.00021,
+      "tag": "after_open_gripper"
+    }
+  ],
+  "ee_tcp_frame": {
+    "R_ee_tcp": [
+      [
+        -0.9999999999999698,
+        1.1853941440259597e-07,
+        2.1556549116782885e-07
+      ],
+      [
+        1.1857871380946912e-07,
+        0.9999999833801443,
+        0.00018231757209669614
+      ],
+      [
+        -2.1554387576692985e-07,
+        0.0001823175721222521,
+        -0.9999999833801282
+      ]
+    ],
+    "note": "measured: jaw dir + finger separation; tool-forward is ~-x of gripper_link, so vendor TCP rotations must be composed through this, not commanded raw."
+  },
+  "errors": [
+    "pregrasp reached: {\"ok\": true, \"position_error_m\": 0.09273527051007553, \"commanded_final_q\": [0.013, -1.945, -0.515, -0.329, -0.002, 0.236], \"measured_q\": [0.033, -1.712, -0.515, -0.379, 0.092, 0.158], \"per_joint_error_rad\": [0.02, 0.233, 0.0, 0.049, 0.093, 0.078], \"max_joint_tracking_error_rad\": 0.23265423091716242}"
+  ],
+  "finished_utc": "2026-08-07T16:08:21Z",
+  "ground_truth_mount": {
+    "T_gripper_cam": [
+      [
+        -0.6476880346570717,
+        -0.038633612596673285,
+        0.7609255244370436,
+        -0.18176209362558138
+      ],
+      [
+        -0.5172053023643968,
+        0.7556439750903187,
+        -0.4018716935986597,
+        0.10992878682249053
+      ],
+      [
+        -0.5594630327092335,
+        -0.6538422033544731,
+        -0.509403070411197,
+        0.07767064891718173
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "note": "never given to the solver"
+  },
+  "hand_eye": {
+    "deployed_method": "PARK",
+    "methods": {
+      "DANIILIDIS": {
+        "marker_spread_m": 0.02706135344761185,
+        "truth_pos_err_m": 0.02158768758397401,
+        "truth_rot_err_deg": 1.5369519228541022
+      },
+      "HORAUD": {
+        "marker_spread_m": 0.02583380719819717,
+        "truth_pos_err_m": 0.0173151356748103,
+        "truth_rot_err_deg": 1.2822082518983342
+      },
+      "PARK": {
+        "marker_spread_m": 0.025830774296648554,
+        "truth_pos_err_m": 0.017378398035629707,
+        "truth_rot_err_deg": 1.3782819734518061
+      },
+      "TSAI": {
+        "marker_spread_m": 0.027841158754352165,
+        "truth_pos_err_m": 0.013488676784298189,
+        "truth_rot_err_deg": 1.357924298209037
+      }
+    },
+    "selection_criterion": "min marker-position spread (no ground truth used)"
+  },
+  "intrinsics": {
+    "fx_assumed": 380.0,
+    "fx_effective": 374.26608683249657
+  },
+  "passed": false,
+  "perception": {
+    "banana_true_pos": [
+      0.25999999046325684,
+      -4.6566128730773926e-08,
+      0.020500004291534424
+    ],
+    "grasp_pos_base_from_camera": [
+      0.2623444136824322,
+      0.0041936096895573635,
+      0.026
+    ],
+    "jaw_width_est_m": 0.05537559195253956,
+    "note": "true pose used ONLY for this diagnostic, never for the target",
+    "position_error_vs_true_m": 0.004804484678034033,
+    "z_error_m": 0.005499995708465575
+  },
+  "post_spawn_drive_test": {
+    "error_rad": 0.00019276618957553282,
+    "revived_by": "none-needed"
+  },
+  "probe": "b601_banana_demo",
+  "scene": {
+    "banana_spot": [
+      0.26,
+      0.0
+    ],
+    "note": "chosen by IK reachability probe; this is table setup, not grasp-target feeding",
+    "table_top_m": 0.0015
+  },
+  "schema_version": "1.0.0",
+  "started_utc": "2026-08-07T16:06:54Z"
+}

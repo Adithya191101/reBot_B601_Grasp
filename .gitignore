@@ -36,6 +36,9 @@ artifacts/render_exp/*
 !artifacts/render_exp/dm-usd_native.json
 !artifacts/render_exp/urdf_force.json
 !artifacts/render_exp/urdf_joints.json
+!artifacts/banana/
+artifacts/banana/*
+!artifacts/banana/b601_banana.json
 *.mp4
 *.mcap
 *.db3
