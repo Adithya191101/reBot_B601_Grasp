@@ -156,6 +156,21 @@ class RebotArmSim:
         self._grip_cmd = 0.0
         self._last_contact_grip: float | None = None
 
+        # Log every per-step joint command so a run can be replayed 1:1 in a
+        # render-only session (the wrist-camera Replicator captures conflict
+        # with the observer Recorder inside one session, so videos are made by
+        # replay). Wrapping apply_action catches every call site at once.
+        self.traj_log: list = []
+        _orig_apply = self.articulation.apply_action
+
+        def _logged_apply(action):
+            jp = getattr(action, "joint_positions", None)
+            if jp is not None and len(jp) == 8:
+                self.traj_log.append(np.asarray(jp, dtype=np.float64).copy())
+            return _orig_apply(action)
+
+        self.articulation.apply_action = _logged_apply
+
     # -- helpers ---------------------------------------------------------
     def joint_positions(self) -> np.ndarray:
         return np.asarray(self.articulation.get_joint_positions(), dtype=np.float64)

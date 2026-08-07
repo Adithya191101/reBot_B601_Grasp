@@ -291,6 +291,28 @@ def _run(args, report: Report) -> None:
                                     dynamic_friction=pick.DYNAMIC_FRICTION,
                                     restitution=0.0)
 
+    replay_data = None
+    if args.replay:
+        # Replay mode: the full scene exists BEFORE the one world.reset (no
+        # mid-run spawn dance needed), and the wrist camera is never created
+        # -- its Replicator render product is what starves the Recorder in a
+        # combined session (78-frame stall, washed-out captures).
+        replay_data = np.load(args.replay)
+        r_top = float(replay_data["table_top"])
+        r_spot = np.asarray(replay_data["spot"], dtype=np.float64)
+        world.scene.add(FixedCuboid(
+            prim_path="/World/table", name="table",
+            position=np.array([0.33, 0.0, r_top / 2]),
+            scale=np.array([TABLE_SIZE[0], TABLE_SIZE[1], r_top]),
+            color=np.array([0.42, 0.32, 0.22])))
+        build_marker_tiles(stage, "/World/aruco_marker",
+                           np.array([0.43, -0.145, r_top + 0.0015]),
+                           MARKER_LENGTH_M)
+        build_banana(stage, "/World/banana", r_spot, r_top)
+        for _i in range(3):
+            pick._bind_physics_material(stage, f"/World/banana/seg{_i}",
+                                        grip_material.prim_path)
+
     articulation = SingleArticulation(prim_path=probe.ARTICULATION_ROOT_PATH,
                                       name="b601")
     world.scene.add(articulation)
@@ -306,6 +328,28 @@ def _run(args, report: Report) -> None:
         recorder.set_link_sync(LinkUsdSync(stage, monitor, issue_paths))
 
     arm = RebotArmSim(world, articulation, monitor, probe, pick, render=args.render)
+
+    if replay_data is not None:
+        from isaacsim.core.utils.types import ArticulationAction
+        # The source run switched to the stiff wrist for the approach; the
+        # contact-heavy segments ran with it, so replay uses it throughout.
+        r_kp, r_kd = probe.RUNTIME_KP.copy(), probe.RUNTIME_KD.copy()
+        r_kp[3:6] = [450.0, 240.0, 150.0]
+        r_kd[3:6] = [31.0, 17.0, 12.0]
+        articulation.get_articulation_controller().set_gains(kps=r_kp,
+                                                             kds=r_kd)
+        rows = np.asarray(replay_data["traj"], dtype=np.float64)
+        idx8 = np.arange(8, dtype=np.int64)
+        world.play()
+        for row in rows:
+            articulation.apply_action(
+                ArticulationAction(joint_positions=row, joint_indices=idx8))
+            world.step(render=False)
+        report.data["replay"] = {
+            "rows": int(len(rows)),
+            "recording": recorder.finalize() if recorder is not None else None}
+        return
+
     # Full 6-D pose solves need the VENDOR default tolerance (IKParams: 1e-4);
     # P3's tightened 1e-5 declares failure at log-metric errors ~1.4e-3 that the
     # post-motion position gate would happily accept.
@@ -1158,6 +1202,13 @@ def _run(args, report: Report) -> None:
 
     if recorder is not None:
         report.data["recording"] = recorder.finalize()
+    if args.out and arm.traj_log:
+        traj_path = Path(args.out).with_name("traj.npz")
+        np.savez_compressed(traj_path,
+                            traj=np.asarray(arm.traj_log),
+                            table_top=table_top, spot=np.asarray(spot))
+        report.data["traj_saved"] = {"path": str(traj_path),
+                                     "rows": len(arm.traj_log)}
     report.data["state_monitor"] = {
         "samples": monitor.samples,
         "max_base_position_drift_m": monitor.max_base_position_drift_m}
@@ -1169,6 +1220,10 @@ def main(argv=None) -> int:
                     default=REPO_ROOT / "artifacts" / "banana" / "b601_banana.json")
     ap.add_argument("--repair-nested-xforms", action="store_true")
     ap.add_argument("--record", type=Path, default=None)
+    ap.add_argument("--replay", type=Path, default=None,
+                    help="traj.npz from a prior run: rebuild the scene, feed "
+                         "the logged joint commands 1:1, record only (no "
+                         "wrist camera, no gates)")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--headful", action="store_true")
     ap.add_argument("--save-images", action="store_true", default=True)
