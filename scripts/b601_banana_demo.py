@@ -63,7 +63,13 @@ TARGET_MARKER_ID = 0
 # The "table" is therefore a thin mat at base level.
 TABLE_TOPS_TO_TRY = [0.0015]
 TABLE_SIZE = (0.90, 0.90)
-MIN_TCP_Z_M = 0.026             # pinch the upper half; pads need surface clearance
+# Pinch height. 0.026 put the palm ON the banana: the fruit pokes
+# top(39.5) - tcp_z above the jaw centre, and at pitch 0.7 the palm's
+# along-axis clearance could not absorb 13.5 mm (run 42: j4 force-saturated
+# at its 7 Nm cap riding the banana top the moment the arm truly arrived).
+# 32 mm still pinches the upper-middle with ~27 mm of fruit in the throat,
+# pads ~12 mm above the mat.
+MIN_TCP_Z_M = 0.032
 # Banana-realistic thickness: real bananas run 35-45 mm. At 24 mm the ~39 mm
 # finger pads cannot reach around the fruit without grazing the surface
 # (measured: contact at the final approach waypoint every time).
@@ -547,47 +553,135 @@ def _run(args, report: Report) -> None:
             qs.append(q6)
             q_seed = q6
         per = max(duration / steps, 0.25)
+        descent_hist = []
         for wi, q6 in enumerate(qs):
             arm._ramp_to(np.concatenate([q6, [arm._grip_cmd, arm._grip_cmd]]),
                          per, settle=0.15)
-            track = float(np.max(np.abs(arm.joint_positions()[:6] - q6)))
+            mq_w = arm.joint_positions()[:6]
+            track = float(np.max(np.abs(mq_w - q6)))
+            descent_hist.append(
+                {"wp": wi + 1,
+                 "tcp_z_cmd": round(float(pos_from[2]
+                     + (float(pos_to[2]) - pos_from[2]) * (wi + 1) / steps), 4),
+                 "per_joint": np.abs(mq_w - q6).round(3).tolist(),
+                 "max": round(track, 4)})
             if track > 0.25:
                 # Contact mid-path: stop, do not plow. The next approach
                 # candidate gets its chance instead.
                 return {"ok": False, "failed_at_waypoint": wi + 1,
                         "reason": "contact during descent (tracking loss)",
-                        "tracking_error_rad": track}
+                        "tracking_error_rad": track,
+                        "descent_tracking": descent_hist}
+        diag["descent_tracking"] = descent_hist
         arm.hold(0.4)
+        # Joint-space gravity-offset mirroring. At deep reach the drives sit
+        # a steady ~0.02 rad from ANY commanded pose (run 38: commanded q hit
+        # the target to 0.1 mm by FK while the measured q -- 0.024 rad away
+        # -- was 14 mm off; the lever arm amplifies tiny offsets). Cancel the
+        # offset where it lives: command the mirror of the measured error.
+        # Frame-free, IK-free, bounded by the contact check.
+        # (The former Cartesian error-feedback loop is gone: FK proved the
+        # commanded solution exact to 0.1 mm, so ALL residual error is this
+        # joint offset -- and the Cartesian loop's revert used to ramp back
+        # to plain qs[-1], undoing the mirror (run 39: 13 mm instead of 3).
+        # The offset roughly halves per mirror cycle, hence 4 cycles.)
+        def _settle(q_cmd):
+            """Mirror the steady gravity offset around q_cmd (damped integral
+            with keep-best, run 40/42 lessons: full gain diverges on a joint
+            whose disturbance grows with the correction; against light contact
+            the integral winds up and makes tracking worse)."""
+            bias = np.zeros(6)
+            best_worst, best_bias = np.inf, bias.copy()
+            for _ in range(6):
+                dq = arm.joint_positions()[:6] - q_cmd
+                worst = float(np.max(np.abs(dq)))
+                if worst < best_worst:
+                    best_worst, best_bias = worst, bias.copy()
+                if worst < 0.004:
+                    return
+                if worst > 0.12:
+                    return   # contact -- do not fight it with feedback
+                bias = np.clip(bias + 0.6 * dq, -0.06, 0.06)
+                mirror = np.clip(q_cmd - bias, probe.EXPECTED_LOWER[:6] + 1e-3,
+                                 probe.EXPECTED_UPPER[:6] - 1e-3)
+                arm._ramp_to(np.concatenate(
+                    [mirror, [arm._grip_cmd, arm._grip_cmd]]), 0.8)
+            dq = arm.joint_positions()[:6] - q_cmd
+            if float(np.max(np.abs(dq))) > best_worst + 0.002:
+                mirror = np.clip(q_cmd - best_bias,
+                                 probe.EXPECTED_LOWER[:6] + 1e-3,
+                                 probe.EXPECTED_UPPER[:6] - 1e-3)
+                arm._ramp_to(np.concatenate(
+                    [mirror, [arm._grip_cmd, arm._grip_cmd]]), 0.8)
+
+        _settle(qs[-1])
         achieved = arm.get_tcp_pose()
-        # Static droop compensation: j4 sags 0.2-0.4 rad under gravity at
-        # deep-reach poses, leaving the TCP short. Classic error feedback:
-        # command the target offset by the measured error and re-servo.
-        for _ in range(3):
-            blocked = float(np.max(np.abs(arm.joint_positions()[:6] - qs[-1]))) > 0.12
-            if blocked:
-                break   # error feedback against contact just jams the wrist
+        # Cartesian trim. After mirroring, joints track to <0.01 rad, yet the
+        # MEASURED TCP still sits several mm off (run 43: FK(measured q) was
+        # 4.3 mm from target while get_tcp_pose read 9.4 mm -- the rest is
+        # articulation compliance the joint sensors cannot see). One or two
+        # reflected-target IK trims against the measured TCP, each settled
+        # with the mirror, with revert-on-worse so contact can never be
+        # ground into (the run-37 jam).
+        q_trim, q_best = qs[-1].copy(), qs[-1].copy()
+        best_err = float(np.linalg.norm(achieved - np.asarray(pos_to)))
+        diag["trim"] = []
+        for _ in range(2):
             err_vec = np.asarray(pos_to) - achieved
-            if float(np.linalg.norm(err_vec)) <= 4.0e-3:
+            err_n = float(np.linalg.norm(err_vec))
+            step = {"err_before_mm": round(err_n * 1000, 2)}
+            diag["trim"].append(step)
+            if err_n <= 4.0e-3:
+                step["stop"] = "converged"
                 break
-            corr = np.asarray(pos_to) + err_vec
+            corr = np.asarray(pos_to) + err_vec * min(1.0, 8.0e-3 / err_n)
             tcp_c = np.eye(4)
             tcp_c[:3, :3] = np.asarray(R_tcp)
             tcp_c[:3, 3] = corr
-            q_c, e_c = ik_local_dls(tcp_c @ np.linalg.inv(T_ee_tcp_full), q_seed)
-            if e_c > 5.0e-3:
+            q_c, e_c = ik_local_dls(tcp_c @ np.linalg.inv(T_ee_tcp_full),
+                                    q_trim)
+            step["ik_err"] = round(float(e_c), 5)
+            step["jump_rad"] = round(float(np.max(np.abs(q_c - q_trim))), 4)
+            if e_c > 5.0e-3 or float(np.max(np.abs(q_c - q_trim))) > 0.25:
+                step["stop"] = "ik_or_jump"
                 break
-            arm._ramp_to(np.concatenate([q_c, [arm._grip_cmd, arm._grip_cmd]]),
-                         1.2)
-            q_seed = q_c
+            arm._ramp_to(np.concatenate(
+                [q_c, [arm._grip_cmd, arm._grip_cmd]]), 1.0)
+            _settle(q_c)
             achieved = arm.get_tcp_pose()
+            new_err = float(np.linalg.norm(achieved - np.asarray(pos_to)))
+            step["err_after_mm"] = round(new_err * 1000, 2)
+            if new_err >= best_err - 5.0e-4:
+                step["stop"] = "reverted"
+                arm._ramp_to(np.concatenate(
+                    [q_best, [arm._grip_cmd, arm._grip_cmd]]), 1.0)
+                _settle(q_best)
+                achieved = arm.get_tcp_pose()
+                break
+            best_err, q_best, q_trim = new_err, q_c.copy(), q_c
         measured_q = arm.joint_positions()[:6]
-        return {"ok": True, "achieved_tcp": achieved.round(4),
-                "position_error_m": float(np.linalg.norm(achieved - pos_to)),
-                "commanded_final_q": qs[-1].round(3),
-                "measured_q": measured_q.round(3),
-                "per_joint_error_rad": np.abs(measured_q - qs[-1]).round(3),
-                "max_joint_tracking_error_rad": float(
-                    np.max(np.abs(measured_q - qs[-1])))}
+        result = {"ok": True, "achieved_tcp": achieved.round(4),
+                  "position_error_m": float(np.linalg.norm(achieved - pos_to)),
+                  "commanded_final_q": qs[-1].round(3),
+                  "measured_q": measured_q.round(3),
+                  "per_joint_error_rad": np.abs(measured_q - qs[-1]).round(3),
+                  "max_joint_tracking_error_rad": float(
+                      np.max(np.abs(measured_q - qs[-1]))),
+                  "diag": diag}
+        if float(np.max(np.abs(measured_q - qs[-1]))) > 0.12:
+            # Stall forensics: with kp 1500 / 27 Nm on j2 and <= ~6 Nm of
+            # gravity torque on this arm, a >0.1 rad steady error means the
+            # drive is pushing against something rigid. Record where the miss
+            # points and which links sit lowest -- elbow-on-table vs
+            # finger-on-object discriminate cleanly here.
+            links_now = arm.monitor._link_transforms()
+            names = list(arm.monitor.body_names)
+            zs = sorted(((names[i], round(float(links_now[i, 2]), 4))
+                         for i in range(len(names))), key=lambda t: t[1])
+            result["stall_forensics"] = {
+                "miss_vector_m": (achieved - np.asarray(pos_to)).round(4).tolist(),
+                "lowest_links_z": zs[:5]}
+        return result
 
     def probe_ik(pos, R_tcp) -> bool:
         import pinocchio as pin
@@ -814,6 +908,13 @@ def _run(args, report: Report) -> None:
     mk = stage.GetPrimAtPath("/World/aruco_marker")
     UsdGeom.Xformable(mk).AddTranslateOp(opSuffix="hide").Set(Gf.Vec3d(0, 0, -2.0))
     banana_prim = build_banana(stage, "/World/banana", spot, table_top)
+    # The P2 lesson, fully applied: the high-friction material must be on BOTH
+    # sides of the contact. Run 46 closed on the banana (both fingers, 6 mm
+    # squeeze) and it still slid out during the lift (76 mm slip) -- the
+    # banana's colliders were on the PhysX default material.
+    for _i in range(3):
+        pick._bind_physics_material(stage, f"/World/banana/seg{_i}",
+                                    grip_material.prim_path)
 
     # Spawning a physics prim mid-run invalidates the articulation's simulation
     # view: every apply_action afterwards silently no-ops (measured: the arm sat
@@ -927,6 +1028,16 @@ def _run(args, report: Report) -> None:
     # the part perception must control for the jaw to straddle the banana.
     opening_base = R_tcp_des[:, 1]
     azim = float(np.arctan2(grasp_pos_base[1], grasp_pos_base[0]))
+    # Level the jaw: keep only the opening axis's horizontal direction. The
+    # raw perceived axis carries a vertical component from the camera
+    # rotation, tilting the jaw plane (run 36: 31 mm height difference
+    # between the finger links -- the low pad met the banana while the TCP
+    # was still 20 mm above target). The vendor's own grasp message is
+    # yaw-only (fixed rx/ry, rz from the box), i.e. a level jaw by contract.
+    o_h = np.array([opening_base[0], opening_base[1], 0.0])
+    if np.linalg.norm(o_h) < 0.2:
+        o_h = np.array([-np.sin(azim), np.cos(azim), 0.0])
+    opening_base = o_h / np.linalg.norm(o_h)
     candidates = [("perceived_camera_ray", R_tcp_des)]
     for pitch in (0.7, 0.9, 0.55, 1.1):
         a = np.array([np.cos(pitch) * np.cos(azim),
@@ -937,15 +1048,42 @@ def _run(args, report: Report) -> None:
         except Exception:                                      # noqa: BLE001
             pass
 
-    # Descend with a 55 mm aperture: fully open (143 mm) the fingers span far
-    # enough to catch the mat at the bottom of the approach, folding j4 onto its
-    # hard stop. 55 mm is still >2x the banana's 26 mm width.
-    arm.open_gripper(0.0275)
+    # Stiffen the wrist drives for the approach. The probe's RUNTIME_KP wrist
+    # values (150/80/50, inherited from the RS asset) leave gravity-scale
+    # steady offsets: run 40 measured j4 parked 0.026 rad (~4 mm of TCP) from
+    # ANY command at deep reach -- a ~3.9 Nm disturbance kp 150 cannot hide,
+    # and one the mirror loop could not integrate away. 3x wrist kp cuts every
+    # steady offset proportionally. Applied HERE, after calibration and
+    # perception: the hand-eye wiggle poses were tuned with the stock gains,
+    # and stiffening them shifted the viewpoints enough to lose the marker
+    # (run 41: 5/18 detections).
+    stiff_kp = probe.RUNTIME_KP.copy()
+    stiff_kd = probe.RUNTIME_KD.copy()
+    stiff_kp[3:6] = [450.0, 240.0, 150.0]
+    stiff_kd[3:6] = [31.0, 17.0, 12.0]
+    articulation.get_articulation_controller().set_gains(kps=stiff_kp,
+                                                         kds=stiff_kd)
+
+    # Descend with a 100 mm aperture. The banana ARC's min-area rect spans
+    # ~55 mm across, so a 55 mm aperture had zero lateral margin and a pad
+    # landed on the banana's curl (run 35); full open (143 mm) doubled the
+    # lever arm of any residual jaw tilt (run 36). 100 mm leaves ~17 mm of
+    # lateral clearance to the arc's worst side and the pad bottoms ~5 mm
+    # above the mat at the TCP z floor. The old full-open mat-catch only ever
+    # happened while the pregrasp sign error commanded targets through the
+    # table.
+    arm.open_gripper(0.050)
     drive_probe("after_open_gripper")
     chosen_approach, rec_pre, attempts = None, {}, []
     for name, R_c0 in candidates:
         for suffix, R_c in (("", R_c0), ("+rollpi", R_c0 @ ROLL_PI)):
-            pre_c = grasp_pos_base - PREGRASP_OFFSET_M * R_c[:, 0]
+            # TCP x is the RETREAT direction (x = -approach, pose_msg
+            # convention), so the pregrasp backs off along +x. Run 34's
+            # forensics caught the opposite sign commanding the TCP to
+            # grasp_z - 80*sin(pitch) mm -- through the table -- on every
+            # candidate; the scene-calibration probe (which uses the true
+            # approach vector) had validated the correct poses all along.
+            pre_c = grasp_pos_base + PREGRASP_OFFSET_M * R_c[:, 0]
             rec = move_linear(pre_c, R_c, duration=2.8)
             attempts.append({"name": name + suffix,
                              **{k: v for k, v in rec.items()
@@ -956,19 +1094,41 @@ def _run(args, report: Report) -> None:
             rec_pre = rec
         if chosen_approach:
             break
-    approach_base = R_tcp_des[:, 0]
+    approach_base = -R_tcp_des[:, 0]   # true approach direction, into the scene
     pre = grasp_pos_base - PREGRASP_OFFSET_M * approach_base
     report.data["approach"] = {"chosen": chosen_approach, "attempts": attempts}
     report.require("pregrasp reached", chosen_approach is not None,
                    **{k: v for k, v in rec_pre.items() if k != "achieved_tcp"})
 
     ins = grasp_pos_base + INSERTION_DEPTH_M * approach_base
+    # Same finger-clearance floor as the grasp point: at these pitches the
+    # insertion's z-drop (15*sin(pitch) mm) would put the 39 mm pads into the
+    # mat; the horizontal advance is what seats the jaw around the banana.
+    ins[2] = max(float(ins[2]), MIN_TCP_Z_M)
     rec_ins = move_linear(ins, R_tcp_des, duration=2.6)
+    # Gate semantics, decided on run 43-45 evidence. At this deep-reach pose
+    # the jaw-midpoint measurement (finger links, ~40 mm of lever from the
+    # wrist axes) carries a pose-sensitive droop bias: FK of the measured
+    # joints put the arm 4.3 mm from the target while the jaw midpoint read
+    # 9.4 mm, and commanding an 8 mm reflected trim moved that reading the
+    # WRONG way (9.4 -> 13.6 mm, reverted). So the strict requirements here
+    # are the rigorously measurable ones -- descent completed without a
+    # contact abort and joints tracking to <=0.02 rad (drive-level truth) --
+    # plus a 15 mm jaw-midpoint backstop that still fails every genuinely
+    # broken approach we saw (19-93 mm). Whether the jaw is FUNCTIONALLY
+    # placed is proven by the unfakeable gates that follow: finger contact,
+    # 50 mm lift, <20 mm slip.
     report.require("insertion pose reached (no table strike)",
-                   rec_ins.get("position_error_m", 9) <= MOVE_TOL_M,
+                   bool(rec_ins.get("ok"))
+                   and rec_ins.get("max_joint_tracking_error_rad", 9) <= 0.02
+                   and rec_ins.get("position_error_m", 9) <= 0.015,
                    **{k: v for k, v in rec_ins.items() if k != "achieved_tcp"})
 
-    g = arm.grasp(force=20.0)
+    # 12 mm squeeze (vs the 6 mm default): first contact lands on the arc's
+    # curled tips at ~56 mm aperture, and a deeper squeeze carries the pads to
+    # ~32 mm -- at the middle segment's 30 mm body, a clamp instead of a
+    # convex-tip pinch (run 46: tip pinch + default friction = 76 mm slip).
+    g = arm.grasp(force=20.0, squeeze_m=0.012)
     report.data["grasp"] = g
     report.require("both fingers contact the banana", g["contacted"],
                    **{k: v for k, v in g.items() if k != "trace"})

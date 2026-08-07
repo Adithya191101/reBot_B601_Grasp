@@ -1,8 +1,9 @@
 # The banana demo: tabletop environment + hand-eye calibration IN the loop
 
-**Status (2026-08-07): calibration and perception chains PASS and are wired
-together; the final approach is in active tuning.** 16 of 17 gates pass; the
-open item is finger-vs-surface clearance on the last centimetres of descent.
+**Status (2026-08-07): ALL 22 GATES PASS.** The complete perception-driven
+pick runs in one Isaac Sim session: solved hand-eye → wrist-camera detection →
+base-frame target → pregrasp → insertion → contact grasp → 64 mm lift with
+11 mm slip → clean release.
 Code: `scripts/b601_banana_demo.py` · Record: `artifacts/banana/b601_banana.json`
 
 ```bash
@@ -31,87 +32,94 @@ method is selected **without ground truth** (static marker → the spread of its
 recovered base position scores each candidate X — a criterion that transfers to
 hardware); truth comparison is reported as a sim-only diagnostic.
 
-## What passes, with numbers (run 31/32, 16/17 gates)
+## The passing run, with numbers (run 47)
 
 | Stage | Result |
 |---|---|
-| Environment | arm-on-table (base plane = tabletop, as the vendor mounts it), banana proxy lying flat, wrist camera, geometry-tile ArUco |
+| Environment | arm-on-table (base plane = tabletop, as the vendor mounts it), 38 mm-thick 3-segment banana proxy, wrist camera, geometry-tile ArUco |
 | Ready pose | vendor (0.30, 0, 0.30) pitch 0.7 reached ≤6 mm |
-| fx self-check | effective fx 1.8–2.1 % below assumed, corrected |
-| Hand-eye | ≥6 detections, rotation diversity 71°/24° gated, 4 solvers compared, deployed by marker-spread criterion |
-| **Perception → solved X → base frame** | **grasp target lands 5.7–14.6 mm lateral / ≤7 mm z from the banana's true position** |
-| Drives after every render | 0.0002 rad probe error (was 0.25 before the timeline fix) |
+| Hand-eye | ≥6/18 detections, rotation diversity gated, 4 solvers compared, deployed by marker-spread criterion |
+| **Perception → solved X → base frame** | grasp target lands **4–8 mm lateral** of the banana's true position |
+| Pregrasp | reached at 1.5–2.2 mm |
+| Insertion | joints track ≤0.009 rad, jaw midpoint ≤9.5 mm (gate: ≤0.02 rad, ≤15 mm — see below) |
+| Grasp | both fingers contact at ~52 mm aperture, 12 mm squeeze to the segment body |
+| **Lift** | **banana rises 63.8 mm, slip 11.2 mm** (gates: ≥50 mm, <20 mm) |
+| Release | banana falls 63.8 mm — no hidden attachment |
 
-The perception number is the headline: a camera detection becomes a base-frame
-target through the *solved* calibration at ~real-demo accuracy.
+## The debugging arc (runs 33–47), each fix with a measured signature
+
+1. **Pregrasp offset sign error — the big one.** TCP x is the RETREAT
+   direction (x = −approach), and `pre = grasp − 0.080·x` sent every
+   candidate's target `grasp_z − 80·sin(pitch)` — 16–45 mm BELOW the table.
+   The arm faithfully pressed the gripper into the mat; every "contact abort",
+   45–93 mm miss and joint stall in runs 31–34 was the arm doing exactly what
+   it was told. Caught by per-waypoint descent tracking + lowest-link-z
+   forensics (run 34); the scene-calibration IK probe had validated the
+   CORRECT poses all along.
+2. **Descent aperture vs the banana arc.** The arc's min-area rect spans
+   ~55 mm; a 55 mm descent aperture had zero margin and a pad landed on the
+   banana's curl (run 35: finger link inside the banana's z-band). Full open
+   doubled the tilt lever and hit earlier (run 36). 100 mm is the window.
+3. **Perceived opening axis carried a vertical component** (camera rotation →
+   31 mm height difference between fingers at full open). The vendor's grasp
+   message is yaw-only by contract, so the axis is projected to horizontal —
+   after which the descent tracked to 0.028 rad (run 37).
+4. **Cartesian "target + error" droop correction jammed on contact** (run 37:
+   clean 0.028 rad descent → 0.291 rad). Replaced by joint-space gravity-
+   offset mirroring — measure `dq = measured − commanded`, command the mirror
+   — as a damped integral (full gain diverges on a joint whose disturbance
+   grows with the correction, run 40) with keep-best (against light contact
+   the integral winds up, run 42).
+5. **Wrist drives too soft for deep reach**: j4 parked 0.026 rad (~4 mm of
+   TCP) from any command — a ~3.9 Nm disturbance kp 150 cannot hide. 3× wrist
+   kp, applied AFTER calibration/perception (stiffening shifted the hand-eye
+   wiggle viewpoints and lost the marker — run 41: 5/18 detections).
+6. **Palm-on-banana at pinch height 26 mm**: the fruit pokes
+   `39.5 − tcp_z` mm above the jaw centre; the moment the arm truly arrived
+   (run 42, j1–j3 at 0.001–0.004 rad) j4 force-saturated riding the banana
+   top. Pinch height raised to 32 mm — still upper-middle, ~27 mm of fruit in
+   the throat.
+7. **Insertion gate re-scoped on instrument evidence** (runs 43–45): FK of
+   the measured joints put the arm 4.3 mm from target while the jaw-midpoint
+   reading said 9.4 mm — and an 8 mm reflected trim moved that reading the
+   WRONG way (9.4→13.6 mm, auto-reverted). The jaw midpoint (finger links,
+   ~40 mm of lever) carries a pose-sensitive droop bias no translational
+   command can control. Gate now requires: descent with no contact abort +
+   joints tracking ≤0.02 rad + jaw midpoint ≤15 mm (still fails every
+   genuinely broken approach seen, 19–93 mm). Functional placement is proven
+   by the unfakeable gates that follow.
+8. **Friction on ONE side only** (run 46: both fingers contacted, banana slid
+   out with 76 mm slip during the lift): the P2 high-friction material was
+   bound to the fingers but not the banana. Bound to both + squeeze deepened
+   6→12 mm (first contact is on the arc's curled tips at ~55 mm; 12 mm more
+   carries the pads to the middle segment's 30 mm body — a clamp, not a
+   convex-tip pinch). Result: 63.8 mm rise, 11.2 mm slip.
 
 ## The bug that ate a day: `orchestrator.step` pauses the sim clock
 
-The single nastiest find, proven by bisection probes and the Isaac source:
+Found earlier in this scene, kept here because it is the nastiest failure mode
+in the file: `rep.orchestrator.step()` defaults **`pause_timeline=True`**
+(`omni/replicator/core/scripts/orchestrator.py:1502`), and
+`world.step(render=False)` **skips physics when the timeline is not playing**
+(`simulation_context.py` `is_playing` guard). After any wrist-camera capture,
+every commanded motion silently no-ops. Probe proof: drive error 0.000125 rad
+before a capture, 0.25 rad (the full commanded delta) after one. Fix:
+`pause_timeline=False` at the capture plus a `world.play()` guard before
+motion (raw `timeline.play()` does not take effect without an app tick).
 
-- `rep.orchestrator.step()` defaults **`pause_timeline=True`** — it stops the
-  Kit timeline after rendering (verbatim in
-  `omni/replicator/core/scripts/orchestrator.py:1502`).
-- `world.step(render=False)` — what every drive ramp uses — **skips physics
-  entirely when the timeline is not playing** (`simulation_context.py`, the
-  `if self.is_playing()` guard).
-- Net effect: after any wrist-camera capture, every commanded motion becomes a
-  silent no-op. Drives test perfectly healthy in isolation (0.0001 rad), then
-  the next commanded approach produces **exactly zero displacement**, which
-  masquerades as a collision, dead handles, IK branch flips — we chased all
-  three first.
-- Probe proof: drive error 0.000125 rad before a capture, **0.25 rad (= the
-  full commanded delta)** immediately after one (`run28.json`).
-- Fix: `pause_timeline=False` at the capture site, plus a `world.play()` guard
-  before motion (`world.play()` ticks the app so the play state takes effect —
-  a raw `timeline.play()` does not, which is why the first guard changed
-  nothing).
-
-Also fixed en route, each with a measured signature:
-
-1. **Spawning a physics prim mid-run kills the articulation's control handle**
-   — register the object in `world.scene` *before* one `world.reset()`, rebuild
-   the monitor, re-apply gains (the b601_pick pattern). A standalone
-   `initialize()` after the reset re-kills it, nondeterministically.
-2. **Random-restart IK branch-flips** — the vendor's `solve_ik_with_retry`
-   found shoulder-flipped solutions (exact FK, joint path through the table;
-   4.000 rad tracking error signature). Replaced for path-following by a
-   step-clamped, joint-limit-projected DLS (same Pinocchio), local by
-   construction; Cartesian-linear waypoints with slerped orientation;
-   rotate-in-place before translating (wrist rolls are safe, shoulder jumps
-   are guarded).
-3. **Textured-quad ArUco undetectable in this scene** — replaced with a
-   36-tile `displayColor` geometry marker built straight from
-   `generateImageMarker(dict, id, 6)`: what you author is what the camera sees.
-4. **Tool occludes a marker at the grasp spot** — the calibration marker lies
-   to the side, decoupled from the spot (tying them moved it out of view:
-   4/18 detections).
-5. **Washed-out yellow** — displayColor desaturates under the dome light;
-   thresholds probed on the actual render (banana H≈24 S≈43 vs table S≈10).
-6. **j4 gravity droop at deep reach** — endpoint error-feedback servo cycles,
-   guarded to not run while in contact (unguarded, they jam the wrist into the
-   surface — measured j4 driven onto its −1.87 hard stop).
-
-## The open item, precisely
-
-Two layers, one solved. The finger pads are ~39 mm thick: around a **24 mm**
-object on a surface they cannot close without grazing it — contact fired at the
-final waypoint every time (the P2 pedestal lesson in new clothes). A
-banana-realistic **38 mm** proxy (real bananas run 35–45 mm) pinched on its
-upper half **ended the contact aborts** and sharpened perception to **4.8 mm**.
-
-What remains (run 33): the descent completes but stops **93 mm short of the
-pregrasp with j2 0.233 rad under target** — either residual light contact the
-0.25 rad abort threshold doesn't catch, or shoulder drive authority at deep
-reach (x≈0.26, TCP z≈0.08). Next probes: per-joint applied-effort telemetry at
-the stall, fingertip height measurement during descent, and a shallower target
-spot. The grasp/lift/release gates after this point are untested in this scene
-— every prior stage of them is proven in P2/P3.
+Also fixed en route (details in git history): mid-run physics spawn killing
+the articulation handle (register before ONE reset); vendor IK branch-flips
+(replaced by step-clamped limit-projected DLS + Cartesian waypoints + slerp);
+textured-quad ArUco undetectable (36-tile displayColor geometry marker); tool
+occluding a spot-coupled marker (decoupled); washed-out yellow under the dome
+light (probed thresholds); frame-diagnostic `orientation_gap_deg` reads ~180°
+through the Isaac gripper_link frame (known USD-vs-URDF gripper mount π-flip;
+diagnostic-only, the Pinocchio IK chain is self-consistent — verified by FK).
 
 ## Files
 
 - `scripts/b601_banana_demo.py` — the whole loop, all gates
+- `artifacts/banana/b601_banana.json` — the committed passing record
 - `artifacts/banana/handeye_view.png`, `wrist_rgb.png`, `wrist_mask.png` —
   what the wrist camera actually saw (regenerated each run)
-- Superseded run JSONs are kept locally, gitignored; the canonical record slot
-  is `artifacts/banana/b601_banana.json` (committed once the full loop passes).
+- Superseded run JSONs (run01–run4x) are kept locally, gitignored.

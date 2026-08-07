@@ -3,212 +3,214 @@
     "attempts": [
       {
         "diag": {
-          "orientation_gap_deg": 139.6396095471024,
+          "orientation_gap_deg": 139.46582003735645,
           "q_start": [
             0.07,
             -1.213,
             -1.051,
-            0.973,
-            0.408,
-            2.899
+            0.97,
+            0.411,
+            2.898
           ]
         },
         "failed_at_waypoint": 0,
-        "ik_error": 1.5760461531454248,
+        "ik_error": 1.5721346311867948,
         "name": "perceived_camera_ray",
         "ok": false,
         "reason": "in-place reorientation unreachable"
       },
       {
         "diag": {
-          "orientation_gap_deg": 176.6543470861191,
+          "orientation_gap_deg": 176.1309153259238,
           "q_start": [
             0.07,
             -1.213,
             -1.051,
-            0.973,
-            0.408,
-            2.899
+            0.97,
+            0.411,
+            2.898
           ]
         },
         "failed_at_waypoint": 0,
-        "ik_error": 1.362865131707757,
+        "ik_error": 1.3610977091712393,
         "name": "perceived_camera_ray+rollpi",
         "ok": false,
         "reason": "in-place reorientation unreachable"
       },
       {
         "diag": {
-          "orientation_gap_deg": 141.0627835706184,
+          "orientation_gap_deg": 156.3623211130192,
           "q_start": [
             0.07,
             -1.213,
             -1.051,
-            0.973,
-            0.408,
-            2.899
+            0.97,
+            0.411,
+            2.898
           ]
         },
-        "failed_at_waypoint": 0,
-        "ik_error": 0.16500548896264655,
+        "failed_at_waypoint": 6,
+        "ik_error": 0.01862642311086698,
         "name": "canonical_pitch_0.7",
         "ok": false,
-        "reason": "in-place reorientation unreachable"
+        "q6": [
+          -0.041,
+          -0.564,
+          -0.191,
+          0.328,
+          -0.045,
+          3.138
+        ],
+        "reason": "local IK failed"
       },
       {
-        "failed_at_waypoint": 7,
-        "name": "canonical_pitch_0.7+rollpi",
-        "ok": false,
-        "reason": "contact during descent (tracking loss)",
-        "tracking_error_rad": 0.38361409917485445
-      },
-      {
+        "commanded_final_q": [
+          0.016,
+          -0.54,
+          -0.134,
+          0.294,
+          -0.001,
+          0.052
+        ],
         "diag": {
-          "orientation_gap_deg": 34.52433904917079,
+          "descent_tracking": [
+            {
+              "max": 0.0033,
+              "per_joint": [
+                0.002,
+                0.003,
+                0.002,
+                0.002,
+                0.0,
+                0.0
+              ],
+              "tcp_z_cmd": 0.1919,
+              "wp": 1
+            },
+            {
+              "max": 0.003,
+              "per_joint": [
+                0.002,
+                0.003,
+                0.002,
+                0.002,
+                0.0,
+                0.0
+              ],
+              "tcp_z_cmd": 0.1739,
+              "wp": 2
+            },
+            {
+              "max": 0.0028,
+              "per_joint": [
+                0.002,
+                0.003,
+                0.003,
+                0.002,
+                0.0,
+                0.0
+              ],
+              "tcp_z_cmd": 0.1558,
+              "wp": 3
+            },
+            {
+              "max": 0.0026,
+              "per_joint": [
+                0.003,
+                0.003,
+                0.003,
+                0.002,
+                0.0,
+                0.001
+              ],
+              "tcp_z_cmd": 0.1377,
+              "wp": 4
+            },
+            {
+              "max": 0.003,
+              "per_joint": [
+                0.003,
+                0.002,
+                0.003,
+                0.002,
+                0.0,
+                0.001
+              ],
+              "tcp_z_cmd": 0.1197,
+              "wp": 5
+            },
+            {
+              "max": 0.0035,
+              "per_joint": [
+                0.004,
+                0.002,
+                0.003,
+                0.002,
+                0.0,
+                0.001
+              ],
+              "tcp_z_cmd": 0.1016,
+              "wp": 6
+            },
+            {
+              "max": 0.0042,
+              "per_joint": [
+                0.004,
+                0.002,
+                0.003,
+                0.002,
+                0.001,
+                0.001
+              ],
+              "tcp_z_cmd": 0.0835,
+              "wp": 7
+            }
+          ],
+          "orientation_gap_deg": 0.528111032476983,
           "q_start": [
-            -0.013,
-            -2.074,
-            -0.329,
-            -1.444,
-            0.015,
-            0.316
+            -0.251,
+            -0.894,
+            -0.709,
+            0.541,
+            -0.204,
+            3.019
+          ],
+          "trim": [
+            {
+              "err_after_mm": 1.26,
+              "err_before_mm": 4.94,
+              "ik_err": 2e-05,
+              "jump_rad": 0.0193
+            },
+            {
+              "err_before_mm": 1.26,
+              "stop": "converged"
+            }
           ]
         },
-        "failed_at_waypoint": 0,
-        "ik_error": 0.261088242618676,
-        "name": "canonical_pitch_0.9",
-        "ok": false,
-        "reason": "in-place reorientation unreachable"
-      },
-      {
-        "failed_at_waypoint": 6,
-        "name": "canonical_pitch_0.9+rollpi",
-        "ok": false,
-        "reason": "contact during descent (tracking loss)",
-        "tracking_error_rad": 0.270762172211098
-      },
-      {
-        "commanded_final_q": [
-          0.022,
-          -2.268,
-          -0.289,
-          -1.429,
-          0.005,
-          -2.787
-        ],
-        "max_joint_tracking_error_rad": 0.18208833848820616,
-        "measured_q": [
-          0.017,
-          -2.229,
-          -0.305,
-          -1.563,
-          -0.002,
-          -2.969
-        ],
-        "name": "canonical_pitch_0.55",
-        "ok": true,
-        "per_joint_error_rad": [
-          0.004,
-          0.039,
-          0.016,
-          0.134,
-          0.007,
-          0.182
-        ],
-        "position_error_m": 0.04625707669142123
-      },
-      {
-        "commanded_final_q": [
-          0.01,
-          -2.222,
-          -0.295,
-          -1.376,
-          -0.005,
-          0.349
-        ],
-        "max_joint_tracking_error_rad": 0.16020495598632456,
+        "max_joint_tracking_error_rad": 0.020963487180715,
         "measured_q": [
           0.013,
-          -2.205,
-          -0.293,
-          -1.537,
-          0.009,
-          0.202
+          -0.527,
+          -0.113,
+          0.289,
+          -0.004,
+          0.05
         ],
-        "name": "canonical_pitch_0.55+rollpi",
+        "name": "canonical_pitch_0.7+rollpi",
         "ok": true,
         "per_joint_error_rad": [
           0.003,
-          0.017,
-          0.002,
-          0.16,
-          0.014,
-          0.147
-        ],
-        "position_error_m": 0.045520390438434664
-      },
-      {
-        "commanded_final_q": [
-          0.019,
-          -1.95,
-          -0.49,
-          -0.36,
-          0.002,
-          -2.899
-        ],
-        "max_joint_tracking_error_rad": 0.19384963135332667,
-        "measured_q": [
-          0.037,
-          -1.756,
-          -0.493,
-          -0.511,
-          0.003,
-          -2.994
-        ],
-        "name": "canonical_pitch_1.1",
-        "ok": true,
-        "per_joint_error_rad": [
-          0.017,
-          0.194,
-          0.003,
-          0.151,
-          0.002,
-          0.095
-        ],
-        "position_error_m": 0.09712150420783987
-      },
-      {
-        "commanded_final_q": [
           0.013,
-          -1.945,
-          -0.515,
-          -0.329,
-          -0.002,
-          0.236
+          0.021,
+          0.006,
+          0.002,
+          0.002
         ],
-        "max_joint_tracking_error_rad": 0.23265423091716242,
-        "measured_q": [
-          0.033,
-          -1.712,
-          -0.515,
-          -0.379,
-          0.092,
-          0.158
-        ],
-        "name": "canonical_pitch_1.1+rollpi",
-        "ok": true,
-        "per_joint_error_rad": [
-          0.02,
-          0.233,
-          0.0,
-          0.049,
-          0.093,
-          0.078
-        ],
-        "position_error_m": 0.09273527051007553
+        "position_error_m": 0.0012613166249383196
       }
     ],
-    "chosen": null
+    "chosen": "canonical_pitch_0.7+rollpi"
   },
   "checks": [
     {
@@ -259,13 +261,13 @@
     {
       "name": "marker detected from the ready pose",
       "passed": true,
-      "rgb_mean": 214.29566840277778,
+      "rgb_mean": 214.2914274691358,
       "view_saved": "handeye_view.png"
     },
     {
       "name": "effective fx within 5% of assumed",
       "passed": true,
-      "ratio": 0.9849107548223593
+      "ratio": 0.982474134978672
     },
     {
       "attempted": 18,
@@ -286,8 +288,8 @@
     {
       "name": "deployed hand-eye recovers the true mount within 35 mm (sim diagnostic)",
       "passed": true,
-      "pos_err_m": 0.017378398035629707,
-      "rot_err_deg": 1.3782819734518061
+      "pos_err_m": 0.016207487448674802,
+      "rot_err_deg": 1.165595277183884
     },
     {
       "error_rad": 0.00019276618957553282,
@@ -300,13 +302,13 @@
       "passed": true,
       "settled": [
         0.25999993085861206,
-        -4.6100467443466187e-08,
-        0.020500006154179573
+        1.6298145055770874e-08,
+        0.020499994978308678
       ],
       "table_top": 0.0015
     },
     {
-      "mask_px": 7218,
+      "mask_px": 7214,
       "name": "yellow-object mask found",
       "passed": true
     },
@@ -316,40 +318,325 @@
       "reason": null
     },
     {
-      "lateral_err_m": 0.004804484678034033,
+      "lateral_err_m": 0.005652631746426954,
       "name": "perceived grasp lands on the banana (<25 mm lateral)",
       "passed": true
     },
     {
       "commanded_final_q": [
-        0.013,
-        -1.945,
-        -0.515,
-        -0.329,
-        -0.002,
-        0.236
+        0.016,
+        -0.54,
+        -0.134,
+        0.294,
+        -0.001,
+        0.052
       ],
-      "max_joint_tracking_error_rad": 0.23265423091716242,
+      "diag": {
+        "descent_tracking": [
+          {
+            "max": 0.0033,
+            "per_joint": [
+              0.002,
+              0.003,
+              0.002,
+              0.002,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.1919,
+            "wp": 1
+          },
+          {
+            "max": 0.003,
+            "per_joint": [
+              0.002,
+              0.003,
+              0.002,
+              0.002,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.1739,
+            "wp": 2
+          },
+          {
+            "max": 0.0028,
+            "per_joint": [
+              0.002,
+              0.003,
+              0.003,
+              0.002,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.1558,
+            "wp": 3
+          },
+          {
+            "max": 0.0026,
+            "per_joint": [
+              0.003,
+              0.003,
+              0.003,
+              0.002,
+              0.0,
+              0.001
+            ],
+            "tcp_z_cmd": 0.1377,
+            "wp": 4
+          },
+          {
+            "max": 0.003,
+            "per_joint": [
+              0.003,
+              0.002,
+              0.003,
+              0.002,
+              0.0,
+              0.001
+            ],
+            "tcp_z_cmd": 0.1197,
+            "wp": 5
+          },
+          {
+            "max": 0.0035,
+            "per_joint": [
+              0.004,
+              0.002,
+              0.003,
+              0.002,
+              0.0,
+              0.001
+            ],
+            "tcp_z_cmd": 0.1016,
+            "wp": 6
+          },
+          {
+            "max": 0.0042,
+            "per_joint": [
+              0.004,
+              0.002,
+              0.003,
+              0.002,
+              0.001,
+              0.001
+            ],
+            "tcp_z_cmd": 0.0835,
+            "wp": 7
+          }
+        ],
+        "orientation_gap_deg": 0.528111032476983,
+        "q_start": [
+          -0.251,
+          -0.894,
+          -0.709,
+          0.541,
+          -0.204,
+          3.019
+        ],
+        "trim": [
+          {
+            "err_after_mm": 1.26,
+            "err_before_mm": 4.94,
+            "ik_err": 2e-05,
+            "jump_rad": 0.0193
+          },
+          {
+            "err_before_mm": 1.26,
+            "stop": "converged"
+          }
+        ]
+      },
+      "max_joint_tracking_error_rad": 0.020963487180715,
       "measured_q": [
-        0.033,
-        -1.712,
-        -0.515,
-        -0.379,
-        0.092,
-        0.158
+        0.013,
+        -0.527,
+        -0.113,
+        0.289,
+        -0.004,
+        0.05
       ],
       "name": "pregrasp reached",
       "ok": true,
-      "passed": false,
+      "passed": true,
       "per_joint_error_rad": [
-        0.02,
-        0.233,
-        0.0,
-        0.049,
-        0.093,
-        0.078
+        0.003,
+        0.013,
+        0.021,
+        0.006,
+        0.002,
+        0.002
       ],
-      "position_error_m": 0.09273527051007553
+      "position_error_m": 0.0012613166249383196
+    },
+    {
+      "commanded_final_q": [
+        0.016,
+        -1.518,
+        -0.161,
+        -0.657,
+        -0.001,
+        0.052
+      ],
+      "diag": {
+        "descent_tracking": [
+          {
+            "max": 0.0039,
+            "per_joint": [
+              0.0,
+              0.001,
+              0.004,
+              0.003,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.0753,
+            "wp": 1
+          },
+          {
+            "max": 0.004,
+            "per_joint": [
+              0.0,
+              0.001,
+              0.004,
+              0.003,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.0681,
+            "wp": 2
+          },
+          {
+            "max": 0.0039,
+            "per_joint": [
+              0.0,
+              0.002,
+              0.004,
+              0.003,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.0608,
+            "wp": 3
+          },
+          {
+            "max": 0.0037,
+            "per_joint": [
+              0.0,
+              0.003,
+              0.004,
+              0.003,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.0536,
+            "wp": 4
+          },
+          {
+            "max": 0.0042,
+            "per_joint": [
+              0.0,
+              0.004,
+              0.003,
+              0.003,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.0464,
+            "wp": 5
+          },
+          {
+            "max": 0.0049,
+            "per_joint": [
+              0.0,
+              0.005,
+              0.003,
+              0.003,
+              0.0,
+              0.0
+            ],
+            "tcp_z_cmd": 0.0392,
+            "wp": 6
+          },
+          {
+            "max": 0.0227,
+            "per_joint": [
+              0.023,
+              0.02,
+              0.015,
+              0.0,
+              0.016,
+              0.006
+            ],
+            "tcp_z_cmd": 0.032,
+            "wp": 7
+          }
+        ],
+        "orientation_gap_deg": 179.99194304362868,
+        "q_start": [
+          0.013,
+          -0.527,
+          -0.113,
+          0.289,
+          -0.004,
+          0.05
+        ],
+        "trim": [
+          {
+            "err_after_mm": 17.44,
+            "err_before_mm": 12.36,
+            "ik_err": 0.0,
+            "jump_rad": 0.0566,
+            "stop": "reverted"
+          }
+        ]
+      },
+      "max_joint_tracking_error_rad": 0.008087337208820822,
+      "measured_q": [
+        0.012,
+        -1.51,
+        -0.164,
+        -0.659,
+        0.001,
+        0.051
+      ],
+      "name": "insertion pose reached (no table strike)",
+      "ok": true,
+      "passed": true,
+      "per_joint_error_rad": [
+        0.004,
+        0.008,
+        0.003,
+        0.002,
+        0.002,
+        0.001
+      ],
+      "position_error_m": 0.009293118181982134
+    },
+    {
+      "contacted": true,
+      "first_contact_grip_cmd_m": 0.02449999999999998,
+      "n_steps": 51,
+      "name": "both fingers contact the banana",
+      "passed": true,
+      "requested_force": 20.0,
+      "squeeze_cmd_m": 0.01249999999999998,
+      "squeeze_depth_m": 0.012
+    },
+    {
+      "name": "banana rises at least 50 mm",
+      "passed": true,
+      "rise_m": 0.07268774881958961
+    },
+    {
+      "name": "slip during lift stays under 20 mm",
+      "passed": true,
+      "slip_m": 0.002251647412776947
+    },
+    {
+      "fall_m": 0.07274302653968334,
+      "name": "banana falls on release (no hidden attachment)",
+      "passed": true
     }
   ],
   "drive_probes": [
@@ -358,7 +645,7 @@
       "tag": "after_perception_render"
     },
     {
-      "error_rad": 0.00021,
+      "error_rad": 0.0,
       "tag": "after_open_gripper"
     }
   ],
@@ -382,10 +669,16 @@
     ],
     "note": "measured: jaw dir + finger separation; tool-forward is ~-x of gripper_link, so vendor TCP rotations must be composed through this, not commanded raw."
   },
-  "errors": [
-    "pregrasp reached: {\"ok\": true, \"position_error_m\": 0.09273527051007553, \"commanded_final_q\": [0.013, -1.945, -0.515, -0.329, -0.002, 0.236], \"measured_q\": [0.033, -1.712, -0.515, -0.379, 0.092, 0.158], \"per_joint_error_rad\": [0.02, 0.233, 0.0, 0.049, 0.093, 0.078], \"max_joint_tracking_error_rad\": 0.23265423091716242}"
-  ],
-  "finished_utc": "2026-08-07T16:08:21Z",
+  "errors": [],
+  "finished_utc": "2026-08-07T16:55:47Z",
+  "grasp": {
+    "contacted": true,
+    "first_contact_grip_cmd_m": 0.02449999999999998,
+    "n_steps": 51,
+    "requested_force": 20.0,
+    "squeeze_cmd_m": 0.01249999999999998,
+    "squeeze_depth_m": 0.012
+  },
   "ground_truth_mount": {
     "T_gripper_cam": [
       [
@@ -416,57 +709,210 @@
     "note": "never given to the solver"
   },
   "hand_eye": {
-    "deployed_method": "PARK",
+    "deployed_method": "HORAUD",
     "methods": {
       "DANIILIDIS": {
-        "marker_spread_m": 0.02706135344761185,
-        "truth_pos_err_m": 0.02158768758397401,
-        "truth_rot_err_deg": 1.5369519228541022
+        "marker_spread_m": 0.02961818932416452,
+        "truth_pos_err_m": 0.020859851830011822,
+        "truth_rot_err_deg": 1.517796523398339
       },
       "HORAUD": {
-        "marker_spread_m": 0.02583380719819717,
-        "truth_pos_err_m": 0.0173151356748103,
-        "truth_rot_err_deg": 1.2822082518983342
+        "marker_spread_m": 0.02852451712875042,
+        "truth_pos_err_m": 0.016207487448674802,
+        "truth_rot_err_deg": 1.165595277183884
       },
       "PARK": {
-        "marker_spread_m": 0.025830774296648554,
-        "truth_pos_err_m": 0.017378398035629707,
-        "truth_rot_err_deg": 1.3782819734518061
+        "marker_spread_m": 0.028554381054970743,
+        "truth_pos_err_m": 0.016289594225528864,
+        "truth_rot_err_deg": 1.2687025486571246
       },
       "TSAI": {
-        "marker_spread_m": 0.027841158754352165,
-        "truth_pos_err_m": 0.013488676784298189,
-        "truth_rot_err_deg": 1.357924298209037
+        "marker_spread_m": 0.030973530162045064,
+        "truth_pos_err_m": 0.011013664837384555,
+        "truth_rot_err_deg": 1.5200671740332599
       }
     },
     "selection_criterion": "min marker-position spread (no ground truth used)"
   },
   "intrinsics": {
     "fx_assumed": 380.0,
-    "fx_effective": 374.26608683249657
+    "fx_effective": 373.34017129189533
   },
-  "passed": false,
+  "lift": {
+    "banana_rise_m": 0.07268774881958961,
+    "ik": {
+      "commanded_final_q": [
+        -0.004,
+        -1.048,
+        -0.405,
+        0.057,
+        -0.016,
+        0.039
+      ],
+      "diag": {
+        "descent_tracking": [
+          {
+            "max": 0.0147,
+            "per_joint": [
+              0.0,
+              0.009,
+              0.004,
+              0.001,
+              0.0,
+              0.015
+            ],
+            "tcp_z_cmd": 0.0519,
+            "wp": 1
+          },
+          {
+            "max": 0.0147,
+            "per_joint": [
+              0.0,
+              0.008,
+              0.004,
+              0.001,
+              0.0,
+              0.015
+            ],
+            "tcp_z_cmd": 0.0633,
+            "wp": 2
+          },
+          {
+            "max": 0.0147,
+            "per_joint": [
+              0.0,
+              0.008,
+              0.005,
+              0.001,
+              0.0,
+              0.015
+            ],
+            "tcp_z_cmd": 0.0747,
+            "wp": 3
+          },
+          {
+            "max": 0.0146,
+            "per_joint": [
+              0.0,
+              0.007,
+              0.005,
+              0.001,
+              0.0,
+              0.015
+            ],
+            "tcp_z_cmd": 0.0862,
+            "wp": 4
+          },
+          {
+            "max": 0.0146,
+            "per_joint": [
+              0.0,
+              0.007,
+              0.005,
+              0.001,
+              0.0,
+              0.015
+            ],
+            "tcp_z_cmd": 0.0976,
+            "wp": 5
+          },
+          {
+            "max": 0.0146,
+            "per_joint": [
+              0.0,
+              0.006,
+              0.005,
+              0.001,
+              0.0,
+              0.015
+            ],
+            "tcp_z_cmd": 0.109,
+            "wp": 6
+          },
+          {
+            "max": 0.0146,
+            "per_joint": [
+              0.0,
+              0.006,
+              0.005,
+              0.001,
+              0.0,
+              0.015
+            ],
+            "tcp_z_cmd": 0.1204,
+            "wp": 7
+          }
+        ],
+        "orientation_gap_deg": 179.3860732251044,
+        "q_start": [
+          0.009,
+          -1.509,
+          -0.164,
+          -0.66,
+          0.004,
+          0.037
+        ],
+        "trim": [
+          {
+            "err_after_mm": 1.5,
+            "err_before_mm": 5.47,
+            "ik_err": 6e-05,
+            "jump_rad": 0.0218
+          },
+          {
+            "err_before_mm": 1.5,
+            "stop": "converged"
+          }
+        ]
+      },
+      "max_joint_tracking_error_rad": 0.022571963013378715,
+      "measured_q": [
+        0.002,
+        -1.048,
+        -0.382,
+        0.036,
+        -0.012,
+        0.04
+      ],
+      "ok": true,
+      "per_joint_error_rad": [
+        0.006,
+        0.0,
+        0.023,
+        0.021,
+        0.004,
+        0.001
+      ],
+      "position_error_m": 0.0014977579744353744
+    },
+    "slip_m": 0.002251647412776947,
+    "tcp_rise_m": 0.07493939623236656
+  },
+  "passed": true,
   "perception": {
     "banana_true_pos": [
-      0.25999999046325684,
-      -4.6566128730773926e-08,
-      0.020500004291534424
+      0.25999993085861206,
+      4.6566128730773926e-09,
+      0.020499996840953827
     ],
     "grasp_pos_base_from_camera": [
-      0.2623444136824322,
-      0.0041936096895573635,
-      0.026
+      0.2633139336906091,
+      0.004579265611202518,
+      0.032
     ],
-    "jaw_width_est_m": 0.05537559195253956,
+    "jaw_width_est_m": 0.055518817279873525,
     "note": "true pose used ONLY for this diagnostic, never for the target",
-    "position_error_vs_true_m": 0.004804484678034033,
-    "z_error_m": 0.005499995708465575
+    "position_error_vs_true_m": 0.005652631746426954,
+    "z_error_m": 0.011500003159046174
   },
   "post_spawn_drive_test": {
     "error_rad": 0.00019276618957553282,
     "revived_by": "none-needed"
   },
   "probe": "b601_banana_demo",
+  "release": {
+    "fall_m": 0.07274302653968334
+  },
   "scene": {
     "banana_spot": [
       0.26,
@@ -476,5 +922,9 @@
     "table_top_m": 0.0015
   },
   "schema_version": "1.0.0",
-  "started_utc": "2026-08-07T16:06:54Z"
+  "started_utc": "2026-08-07T16:55:02Z",
+  "state_monitor": {
+    "max_base_position_drift_m": 0.0005715380292386575,
+    "samples": 10605
+  }
 }
