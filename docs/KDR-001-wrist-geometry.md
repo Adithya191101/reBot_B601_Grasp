@@ -60,11 +60,17 @@ TCP is the constant `T_end_link_gripper_tcp` = translation [-41.763, 0.008,
 Any future wrist change invalidates these hashes and forces grasp-library
 regeneration (doc rule).
 
+## Generated URDF product
+
+`urdf/rebot_b601dm_canonical.urdf` (SHA-256 prefix **dae842f4f4fa89d4**):
+byte-identical to the vendor with_gripper URDF except arm velocity limits
+replaced with **5,5,5,3,3,3 rad/s** (the vendor's 50/200/15 are unphysical;
+cuMotion reads the URDF, not MoveIt YAML). Verified via Pinocchio:
+velocityLimit[:6] = [5,5,5,3,3,3]. This is the file every downstream
+consumer (MoveIt, XRDF, USD import, driver-URDF generation) must reference.
+
 ## Outstanding M3′ items
 
-1. Velocity limits: the vendor URDFs carry unphysical limits; the doc
-   requires 5,5,5,3,3,3 rad/s **in the canonical URDF itself** (cuMotion
-   cannot see MoveIt YAML overrides). To be produced as our own generated
-   URDF product (vendor tree stays pristine) with new hashes recorded here.
-2. `check_urdf` + FK parity + mimic +1.0 + frame-contract tests re-run inside
+1. `check_urdf` + FK parity + mimic +1.0 + frame-contract tests re-run inside
    the Jazzy container once M0 completes.
+2. Orientation-equivalence sub-check for end_link vs gripper_link.
