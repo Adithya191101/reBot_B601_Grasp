@@ -1,9 +1,12 @@
 # The banana demo: tabletop environment + hand-eye calibration IN the loop
 
-**Status (2026-08-07): ALL 22 GATES PASS.** The complete perception-driven
-pick runs in one Isaac Sim session: solved hand-eye → wrist-camera detection →
-base-frame target → pregrasp → insertion → contact grasp → 64 mm lift with
-11 mm slip → clean release.
+**Status (2026-08-07): ALL 22 GATES PASS — with the real YCB `011_banana`
+mesh.** The complete perception-driven pick runs in one Isaac Sim session:
+solved hand-eye → wrist-camera detection → base-frame target → pregrasp →
+insertion → contact grasp → **74 mm lift with <2 mm slip, 3/3 consecutive
+runs** → clean release. The object is the scanned YCB banana loaded from the
+Isaac asset library (falls back to the original 3-segment proxy if the asset
+server is unreachable; the record states which via `banana_asset`).
 Code: `scripts/b601_banana_demo.py` · Record: `artifacts/banana/b601_banana.json`
 
 ```bash
@@ -46,7 +49,32 @@ hardware); truth comparison is reported as a sim-only diagnostic.
 | **Lift** | **banana rises 63.8 mm, slip 11.2 mm** (gates: ≥50 mm, <20 mm) |
 | Release | banana falls 63.8 mm — no hidden attachment |
 
-## The debugging arc (runs 33–47), each fix with a measured signature
+## What the REAL banana changed (runs 52–59)
+
+Swapping the proxy for the scanned YCB mesh exposed three things the flat
+proxy could not:
+
+- **A rigid banana does not lie flat — it rocks onto its two ends with the
+  belly arched up** (centre at z = 38.5 mm vs the proxy's 20.5). The vendor's
+  global depth median then reads a height *below* the arched midsection and
+  the jaw closes through the air under the belly (run 53: 100 close steps,
+  zero contact). Fix: local-top height — quantile 0.1 of the mask depth,
+  pinch 12 mm below the crest.
+- **Parallax**: the rect-centre pixel images the arch TOP, and back-projecting
+  it at the median depth slides the target ~13 mm down the viewing ray. One
+  pad then wedges the flank at 73–84 mm aperture and the banana falls during
+  the lift (runs 55/56). Fix: x/y from the same top-depth back-projection —
+  grasp the crest where the crest actually is. After the fix, first contact
+  lands at 36–38 mm aperture (the banana's true body width) on every run.
+- The `position_error_vs_true` diagnostic now reads ~16 mm by construction:
+  it compares the grasp point to the banana's ORIGIN, and the crest of an
+  end-rocking banana is genuinely offset from its centre of mass. The
+  contact aperture and slip numbers are the placement truth.
+
+Passing numbers (runs 57/58/59): rise 74.3/74.2/74.7 mm, slip 1.7/1.9/1.4 mm,
+insertion 1.4 mm, YCB mass 66 g, same vendor demo parameters throughout.
+
+## The debugging arc (runs 33–47, proxy era), each fix with a measured signature
 
 1. **Pregrasp offset sign error — the big one.** TCP x is the RETREAT
    direction (x = −approach), and `pre = grasp − 0.080·x` sent every
