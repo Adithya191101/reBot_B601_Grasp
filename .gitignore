@@ -28,6 +28,14 @@ artifacts/urdf_import/*
 !artifacts/hand_eye/
 artifacts/hand_eye/*
 !artifacts/hand_eye/b601_hand_eye.json
+!artifacts/render_exp/
+artifacts/render_exp/*
+!artifacts/render_exp/dm-usd_none.json
+!artifacts/render_exp/urdf_none_v2.json
+!artifacts/render_exp/dm-usd_writeback_v2.json
+!artifacts/render_exp/dm-usd_native.json
+!artifacts/render_exp/urdf_force.json
+!artifacts/render_exp/urdf_joints.json
 *.mp4
 *.mcap
 *.db3

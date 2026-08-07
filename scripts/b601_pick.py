@@ -285,6 +285,17 @@ class Recorder:
         self._annot = rep.AnnotatorRegistry.get_annotator("rgb")
         self._annot.attach(self._rp)
 
+    def set_link_sync(self, sync) -> None:
+        """Sync articulation link transforms to USD before each capture.
+
+        Required for the session-repaired DM asset: resetXformStack disables
+        PhysX's USD writeback on the repaired links, so without this the arm
+        renders frozen at its spawn pose while physics moves it (measured:
+        0.23 px of arm motion for 100 mm of commanded jaw travel). See
+        scripts/b601_usd_sync.py and artifacts/render_exp/.
+        """
+        self._link_sync = sync
+
     def attach(self, world: Any) -> None:
         original = world.step
 
@@ -293,6 +304,9 @@ class Recorder:
             result = original(*args, **kwargs)
             self.calls += 1
             if self.calls % self.every == 0:
+                sync = getattr(self, "_link_sync", None)
+                if sync is not None:
+                    sync.push()
                 self.capture()
             return result
 
@@ -381,6 +395,7 @@ def _run(args: argparse.Namespace, report: Report, sim_app: Any) -> None:
                    bool(articulation_root_prim.IsValid()))
 
     nested_issues = probe._nested_rigid_body_issues(stage)
+    nested_issues_paths = [i["body_path"] for i in nested_issues]
     if nested_issues and not args.repair_nested_xforms:
         report.require("nested rigid-body Xform stacks are PhysX-valid", False,
                        issue_count=len(nested_issues),
@@ -492,6 +507,9 @@ def _run(args: argparse.Namespace, report: Report, sim_app: Any) -> None:
     }
 
     monitor = probe.StateMonitor(articulation)
+    if recorder is not None and nested_issues_paths:
+        from b601_usd_sync import LinkUsdSync
+        recorder.set_link_sync(LinkUsdSync(stage, monitor, nested_issues_paths))
 
     def jaw_midpoint(label: str = "jaw") -> np.ndarray:
         """Live jaw midpoint from the PhysX tensor API.
@@ -630,6 +648,8 @@ def _run(args: argparse.Namespace, report: Report, sim_app: Any) -> None:
     }
 
     monitor = probe.StateMonitor(articulation)
+    if recorder is not None and getattr(recorder, '_link_sync', None) is not None:
+        recorder._link_sync.rebind(monitor)
     articulation.get_articulation_controller().set_gains(
         kps=probe.RUNTIME_KP, kds=probe.RUNTIME_KD)
     # The arm is already at the grasp pose; hold it there under drive control so

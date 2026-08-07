@@ -1,0 +1,806 @@
+{
+  "fix": "none",
+  "forensics": [
+    {
+      "attributes": {
+        "xformOp:orient": "(0.6941839419653723, -0.6941503296306427, 0.13474731166593826, 0.13456276078428805)",
+        "xformOp:scale": "(1, 1, 1)",
+        "xformOp:translate": "(-0.22484144568443298, 0.03168493136763573, 0.23891490697860718)",
+        "xformOpOrder": "[xformOp:translate, xformOp:orient, xformOp:scale]"
+      },
+      "path": "/reBot_B601_DM_with_gripper/link3",
+      "resetXformStack": false,
+      "valid": true,
+      "xformOpOrder": [
+        "xformOp:translate",
+        "xformOp:orient",
+        "xformOp:scale"
+      ]
+    },
+    {
+      "attributes": {
+        "xformOp:orient": "(-0.286633985310555, 0.6458238280356291, 0.6476265107226995, -0.28518843632857205)",
+        "xformOp:scale": "(1, 1, 1)",
+        "xformOp:translate": "(0.16631345450878143, 0.00043580029159784317, 0.034183576703071594)",
+        "xformOpOrder": "[xformOp:translate, xformOp:orient, xformOp:scale]"
+      },
+      "path": "/reBot_B601_DM_with_gripper/gripper_left",
+      "resetXformStack": false,
+      "valid": true,
+      "xformOpOrder": [
+        "xformOp:translate",
+        "xformOp:orient",
+        "xformOp:scale"
+      ]
+    }
+  ],
+  "joint_forensics": {
+    "gripper_joint1": {
+      "drive:linear:physics:damping": 0.0,
+      "drive:linear:physics:maxForce": 100.0,
+      "drive:linear:physics:stiffness": 625.0,
+      "drive:linear:physics:targetPosition": 0.0,
+      "drive:linear:physics:type": "acceleration",
+      "physics:lowerLimit": 0.0,
+      "physics:upperLimit": 0.07150000333786011,
+      "physxJoint:armature": 0.0,
+      "physxJoint:jointFriction": 0.0,
+      "physxJoint:maxJointVelocity": 15.0,
+      "type": "PhysicsPrismaticJoint"
+    },
+    "gripper_joint2": {
+      "drive:linear:physics:damping": 0.0,
+      "drive:linear:physics:maxForce": 100.0,
+      "drive:linear:physics:stiffness": 625.0,
+      "drive:linear:physics:targetPosition": 0.0,
+      "drive:linear:physics:type": "acceleration",
+      "physics:lowerLimit": 0.0,
+      "physics:upperLimit": 0.07150000333786011,
+      "physxJoint:armature": 0.0,
+      "physxJoint:jointFriction": 0.0,
+      "physxJoint:maxJointVelocity": 15.0,
+      "type": "PhysicsPrismaticJoint"
+    },
+    "joint1": {
+      "drive:angular:physics:damping": 0.0,
+      "drive:angular:physics:maxForce": 27.0,
+      "drive:angular:physics:stiffness": 625.0,
+      "drive:angular:physics:targetPosition": 0.0,
+      "drive:angular:physics:type": "acceleration",
+      "physics:lowerLimit": -160.4281768798828,
+      "physics:upperLimit": 160.4281768798828,
+      "physxJoint:armature": 0.0,
+      "physxJoint:jointFriction": 0.0,
+      "physxJoint:maxJointVelocity": 2864.788818359375,
+      "type": "PhysicsRevoluteJoint"
+    },
+    "joint2": {
+      "drive:angular:physics:damping": 0.0,
+      "drive:angular:physics:maxForce": 27.0,
+      "drive:angular:physics:stiffness": 625.0,
+      "drive:angular:physics:targetPosition": 0.0,
+      "drive:angular:physics:type": "acceleration",
+      "physics:lowerLimit": -179.9087371826172,
+      "physics:upperLimit": 0.0,
+      "physxJoint:armature": 0.0,
+      "physxJoint:jointFriction": 0.0,
+      "physxJoint:maxJointVelocity": 2864.788818359375,
+      "type": "PhysicsRevoluteJoint"
+    },
+    "joint3": {
+      "drive:angular:physics:damping": 0.0,
+      "drive:angular:physics:maxForce": 27.0,
+      "drive:angular:physics:stiffness": 625.0,
+      "drive:angular:physics:targetPosition": 0.0,
+      "drive:angular:physics:type": "acceleration",
+      "physics:lowerLimit": -179.9087371826172,
+      "physics:upperLimit": 0.0,
+      "physxJoint:armature": 0.0,
+      "physxJoint:jointFriction": 0.0,
+      "physxJoint:maxJointVelocity": 2864.788818359375,
+      "type": "PhysicsRevoluteJoint"
+    },
+    "joint4": {
+      "drive:angular:physics:damping": 0.0,
+      "drive:angular:physics:maxForce": 7.0,
+      "drive:angular:physics:stiffness": 625.0,
+      "drive:angular:physics:targetPosition": 0.0,
+      "drive:angular:physics:type": "acceleration",
+      "physics:lowerLimit": -107.14310455322266,
+      "physics:upperLimit": 89.9543685913086,
+      "physxJoint:armature": 0.0,
+      "physxJoint:jointFriction": 0.0,
+      "physxJoint:maxJointVelocity": 11459.1552734375,
+      "type": "PhysicsRevoluteJoint"
+    },
+    "joint5": {
+      "drive:angular:physics:damping": 0.0,
+      "drive:angular:physics:maxForce": 7.0,
+      "drive:angular:physics:stiffness": 625.0,
+      "drive:angular:physics:targetPosition": 0.0,
+      "drive:angular:physics:type": "acceleration",
+      "physics:lowerLimit": -89.9543685913086,
+      "physics:upperLimit": 89.9543685913086,
+      "physxJoint:armature": 0.0,
+      "physxJoint:jointFriction": 0.0,
+      "physxJoint:maxJointVelocity": 11459.1552734375,
+      "type": "PhysicsRevoluteJoint"
+    },
+    "joint6": {
+      "drive:angular:physics:damping": 0.0,
+      "drive:angular:physics:maxForce": 7.0,
+      "drive:angular:physics:stiffness": 625.0,
+      "drive:angular:physics:targetPosition": 0.0,
+      "drive:angular:physics:type": "acceleration",
+      "physics:lowerLimit": -179.9087371826172,
+      "physics:upperLimit": 179.9087371826172,
+      "physxJoint:armature": 0.0,
+      "physxJoint:jointFriction": 0.0,
+      "physxJoint:maxJointVelocity": 11459.1552734375,
+      "type": "PhysicsRevoluteJoint"
+    }
+  },
+  "phases": [
+    {
+      "changed_px_final": 58827,
+      "changed_px_max": 58827,
+      "samples": [
+        {
+          "changed_px_vs_start": 1442,
+          "joint2_cmd": -0.041999999999999996,
+          "joint2_measured": -0.00652210833504796,
+          "k": 29,
+          "tensor_control_cube": [
+            0.4475022554397583,
+            -0.25462955236434937,
+            0.025000272318720818
+          ],
+          "tensor_jaw_z": 0.03355318307876587,
+          "usd_control_cube": [
+            0.4475022554397583,
+            -0.25462955236434937,
+            0.025000272318720818
+          ],
+          "usd_gripper_left": [
+            0.14858555793762207,
+            4.682224243879318e-05,
+            0.0335620641708374
+          ]
+        },
+        {
+          "changed_px_vs_start": 19103,
+          "joint2_cmd": -0.08399999999999999,
+          "joint2_measured": -0.048290956765413284,
+          "k": 59,
+          "tensor_control_cube": [
+            0.4475022852420807,
+            -0.254629522562027,
+            0.025000272318720818
+          ],
+          "tensor_jaw_z": 0.033683549612760544,
+          "usd_control_cube": [
+            0.4475022852420807,
+            -0.254629522562027,
+            0.025000272318720818
+          ],
+          "usd_gripper_left": [
+            0.1501082181930542,
+            8.418969810009003e-05,
+            0.03369244933128357
+          ]
+        },
+        {
+          "changed_px_vs_start": 28019,
+          "joint2_cmd": -0.126,
+          "joint2_measured": -0.08986498415470123,
+          "k": 89,
+          "tensor_control_cube": [
+            0.4475022852420807,
+            -0.254629522562027,
+            0.02500027045607567
+          ],
+          "tensor_jaw_z": 0.03379837051033974,
+          "usd_control_cube": [
+            0.4475022852420807,
+            -0.254629522562027,
+            0.02500027045607567
+          ],
+          "usd_gripper_left": [
+            0.15173521637916565,
+            0.00012228544801473618,
+            0.03380719572305679
+          ]
+        },
+        {
+          "changed_px_vs_start": 34871,
+          "joint2_cmd": -0.16799999999999998,
+          "joint2_measured": -0.13140389323234558,
+          "k": 119,
+          "tensor_control_cube": [
+            0.4475022554397583,
+            -0.25462958216667175,
+            0.02500026859343052
+          ],
+          "tensor_jaw_z": 0.03389927186071873,
+          "usd_control_cube": [
+            0.4475022554397583,
+            -0.25462958216667175,
+            0.02500026859343052
+          ],
+          "usd_gripper_left": [
+            0.15347792208194733,
+            0.00012200232595205307,
+            0.033908046782016754
+          ]
+        },
+        {
+          "changed_px_vs_start": 40447,
+          "joint2_cmd": -0.21,
+          "joint2_measured": -0.17354190349578857,
+          "k": 149,
+          "tensor_control_cube": [
+            0.4475022852420807,
+            -0.2546294927597046,
+            0.02500027045607567
+          ],
+          "tensor_jaw_z": 0.033984191715717316,
+          "usd_control_cube": [
+            0.4475022852420807,
+            -0.2546294927597046,
+            0.02500027045607567
+          ],
+          "usd_gripper_left": [
+            0.15534698963165283,
+            0.0002618785947561264,
+            0.03399299085140228
+          ]
+        },
+        {
+          "changed_px_vs_start": 44442,
+          "joint2_cmd": -0.252,
+          "joint2_measured": -0.21546879410743713,
+          "k": 179,
+          "tensor_control_cube": [
+            0.4475022852420807,
+            -0.2546294927597046,
+            0.025000276044011116
+          ],
+          "tensor_jaw_z": 0.03405356407165527,
+          "usd_control_cube": [
+            0.4475022852420807,
+            -0.2546294927597046,
+            0.025000276044011116
+          ],
+          "usd_gripper_left": [
+            0.15732888877391815,
+            0.00027313362807035446,
+            0.034062303602695465
+          ]
+        },
+        {
+          "changed_px_vs_start": 48432,
+          "joint2_cmd": -0.294,
+          "joint2_measured": -0.25731298327445984,
+          "k": 209,
+          "tensor_control_cube": [
+            0.4475022852420807,
+            -0.254629522562027,
+            0.025000272318720818
+          ],
+          "tensor_jaw_z": 0.03410777635872364,
+          "usd_control_cube": [
+            0.4475022852420807,
+            -0.254629522562027,
+            0.025000272318720818
+          ],
+          "usd_gripper_left": [
+            0.1594122052192688,
+            0.0002925833687186241,
+            0.03411651402711868
+          ]
+        },
+        {
+          "changed_px_vs_start": 51767,
+          "joint2_cmd": -0.33599999999999997,
+          "joint2_measured": -0.29909032583236694,
+          "k": 239,
+          "tensor_control_cube": [
+            0.4475022852420807,
+            -0.25462961196899414,
+            0.025000272318720818
+          ],
+          "tensor_jaw_z": 0.03414454683661461,
+          "usd_control_cube": [
+            0.4475022852420807,
+            -0.25462961196899414,
+            0.025000272318720818
+          ],
+          "usd_gripper_left": [
+            0.16160330176353455,
+            0.00032795965671539307,
+            0.034153297543525696
+          ]
+        },
+        {
+          "changed_px_vs_start": 55182,
+          "joint2_cmd": -0.37799999999999995,
+          "joint2_measured": -0.34119465947151184,
+          "k": 269,
+          "tensor_control_cube": [
+            0.4475022852420807,
+            -0.25462961196899414,
+            0.025000277906656265
+          ],
+          "tensor_jaw_z": 0.03416816517710686,
+          "usd_control_cube": [
+            0.4475022852420807,
+            -0.25462961196899414,
+            0.025000277906656265
+          ],
+          "usd_gripper_left": [
+            0.16390617191791534,
+            0.0003710174933075905,
+            0.03417687118053436
+          ]
+        },
+        {
+          "changed_px_vs_start": 58827,
+          "joint2_cmd": -0.42,
+          "joint2_measured": -0.3832317590713501,
+          "k": 299,
+          "tensor_control_cube": [
+            0.4475022852420807,
+            -0.254629522562027,
+            0.025000272318720818
+          ],
+          "tensor_jaw_z": 0.03417483530938625,
+          "usd_control_cube": [
+            0.4475022852420807,
+            -0.254629522562027,
+            0.025000272318720818
+          ],
+          "usd_gripper_left": [
+            0.16631345450878143,
+            0.00043580029159784317,
+            0.034183576703071594
+          ]
+        }
+      ],
+      "tag": "sweep1",
+      "tensor_jaw_z_range_mm": 0.6216522306203842,
+      "usd_jaw_z_range_mm": 0.6215125322341919
+    },
+    {
+      "changed_px_final": 71556,
+      "changed_px_max": 71556,
+      "samples": [
+        {
+          "changed_px_vs_start": 16503,
+          "joint2_cmd": -0.4252317590713501,
+          "joint2_measured": -0.38211822509765625,
+          "k": 29,
+          "tensor_control_cube": [
+            0.44821327924728394,
+            -0.2527307868003845,
+            0.02500053681433201
+          ],
+          "tensor_jaw_z": 0.03380501829087734,
+          "usd_control_cube": [
+            0.44821327924728394,
+            -0.2527307868003845,
+            0.02500053681433201
+          ],
+          "usd_gripper_left": [
+            0.16618449985980988,
+            0.0007962435483932495,
+            0.03410682454705238
+          ]
+        },
+        {
+          "changed_px_vs_start": 31484,
+          "joint2_cmd": -0.46723175907135006,
+          "joint2_measured": -0.42459073662757874,
+          "k": 59,
+          "tensor_control_cube": [
+            0.4482131004333496,
+            -0.2527308166027069,
+            0.02500052936375141
+          ],
+          "tensor_jaw_z": 0.0337972417473793,
+          "usd_control_cube": [
+            0.4482131004333496,
+            -0.2527308166027069,
+            0.02500052936375141
+          ],
+          "usd_gripper_left": [
+            0.1686864197254181,
+            0.001182052306830883,
+            0.03408747911453247
+          ]
+        },
+        {
+          "changed_px_vs_start": 40589,
+          "joint2_cmd": -0.5092317590713501,
+          "joint2_measured": -0.4670138657093048,
+          "k": 89,
+          "tensor_control_cube": [
+            0.448213130235672,
+            -0.2527308762073517,
+            0.025000521913170815
+          ],
+          "tensor_jaw_z": 0.03376919403672218,
+          "usd_control_cube": [
+            0.448213130235672,
+            -0.2527308762073517,
+            0.025000521913170815
+          ],
+          "usd_gripper_left": [
+            0.17129501700401306,
+            0.001420498825609684,
+            0.034054890275001526
+          ]
+        },
+        {
+          "changed_px_vs_start": 47282,
+          "joint2_cmd": -0.55123175907135,
+          "joint2_measured": -0.5095778107643127,
+          "k": 119,
+          "tensor_control_cube": [
+            0.4482131898403168,
+            -0.2527308464050293,
+            0.025000520050525665
+          ],
+          "tensor_jaw_z": 0.03372708149254322,
+          "usd_control_cube": [
+            0.4482131898403168,
+            -0.2527308464050293,
+            0.025000520050525665
+          ],
+          "usd_gripper_left": [
+            0.1740005910396576,
+            0.0017743874341249466,
+            0.03401074931025505
+          ]
+        },
+        {
+          "changed_px_vs_start": 51757,
+          "joint2_cmd": -0.5932317590713501,
+          "joint2_measured": -0.5521602034568787,
+          "k": 149,
+          "tensor_control_cube": [
+            0.44821321964263916,
+            -0.2527308762073517,
+            0.02500053495168686
+          ],
+          "tensor_jaw_z": 0.033669956028461456,
+          "usd_control_cube": [
+            0.44821321964263916,
+            -0.2527308762073517,
+            0.02500053495168686
+          ],
+          "usd_gripper_left": [
+            0.17679549753665924,
+            0.0021670199930667877,
+            0.033954918384552
+          ]
+        },
+        {
+          "changed_px_vs_start": 55044,
+          "joint2_cmd": -0.6352317590713501,
+          "joint2_measured": -0.594855010509491,
+          "k": 179,
+          "tensor_control_cube": [
+            0.44821321964263916,
+            -0.2527308464050293,
+            0.025000547990202904
+          ],
+          "tensor_jaw_z": 0.03359631262719631,
+          "usd_control_cube": [
+            0.44821321964263916,
+            -0.2527308464050293,
+            0.025000547990202904
+          ],
+          "usd_gripper_left": [
+            0.17967510223388672,
+            0.002601862885057926,
+            0.033883824944496155
+          ]
+        },
+        {
+          "changed_px_vs_start": 59040,
+          "joint2_cmd": -0.6772317590713501,
+          "joint2_measured": -0.6375395655632019,
+          "k": 209,
+          "tensor_control_cube": [
+            0.4482131600379944,
+            -0.2527309060096741,
+            0.025000527501106262
+          ],
+          "tensor_jaw_z": 0.03350440785288811,
+          "usd_control_cube": [
+            0.4482131600379944,
+            -0.2527309060096741,
+            0.025000527501106262
+          ],
+          "usd_gripper_left": [
+            0.18260937929153442,
+            0.0030363649129867554,
+            0.03378728777170181
+          ]
+        },
+        {
+          "changed_px_vs_start": 63609,
+          "joint2_cmd": -0.7192317590713501,
+          "joint2_measured": -0.6804074048995972,
+          "k": 239,
+          "tensor_control_cube": [
+            0.44821327924728394,
+            -0.2527308166027069,
+            0.02500053122639656
+          ],
+          "tensor_jaw_z": 0.03339865244925022,
+          "usd_control_cube": [
+            0.44821327924728394,
+            -0.2527308166027069,
+            0.02500053122639656
+          ],
+          "usd_gripper_left": [
+            0.1856272667646408,
+            0.003552180714905262,
+            0.0336841456592083
+          ]
+        },
+        {
+          "changed_px_vs_start": 67598,
+          "joint2_cmd": -0.76123175907135,
+          "joint2_measured": -0.7232770323753357,
+          "k": 269,
+          "tensor_control_cube": [
+            0.4482131898403168,
+            -0.2527306079864502,
+            0.025000549852848053
+          ],
+          "tensor_jaw_z": 0.03327691927552223,
+          "usd_control_cube": [
+            0.4482131898403168,
+            -0.2527306079864502,
+            0.025000549852848053
+          ],
+          "usd_gripper_left": [
+            0.18869738280773163,
+            0.004064525477588177,
+            0.03356499969959259
+          ]
+        },
+        {
+          "changed_px_vs_start": 71556,
+          "joint2_cmd": -0.80323175907135,
+          "joint2_measured": -0.7662197947502136,
+          "k": 299,
+          "tensor_control_cube": [
+            0.4482131600379944,
+            -0.2527306079864502,
+            0.025000516325235367
+          ],
+          "tensor_jaw_z": 0.03313721530139446,
+          "usd_control_cube": [
+            0.4482131600379944,
+            -0.2527306079864502,
+            0.025000516325235367
+          ],
+          "usd_gripper_left": [
+            0.19180524349212646,
+            0.004597165621817112,
+            0.03342266380786896
+          ]
+        }
+      ],
+      "tag": "sweep2_after_reset",
+      "tensor_jaw_z_range_mm": 0.6678029894828796,
+      "usd_jaw_z_range_mm": 0.6841607391834259
+    }
+  ],
+  "scene": "urdf",
+  "settings": {
+    "/app/renderer/skipWhileMinimized": false,
+    "/app/useFabricSceneDelegate": true,
+    "/defaults/persistent/physics/autocreatePhysicsScene": true,
+    "/defaults/persistent/physics/cooking/ujitsoCookingMaxProcessCount": 16,
+    "/defaults/persistent/physics/enableDeformableBeta": 0,
+    "/defaults/persistent/physics/localMeshCacheSizeMB": 1024,
+    "/defaults/persistent/physics/massDistributionManipulator": false,
+    "/defaults/persistent/physics/numThreads": 8,
+    "/defaults/persistent/physics/omniPvdOvdRecordingDirectory": "",
+    "/defaults/persistent/physics/overrideGPUSettings": -1,
+    "/defaults/persistent/physics/pvdDebug": true,
+    "/defaults/persistent/physics/pvdEnabled": false,
+    "/defaults/persistent/physics/pvdIP": "127.0.0.1",
+    "/defaults/persistent/physics/pvdMemory": true,
+    "/defaults/persistent/physics/pvdOutputDirectory": "",
+    "/defaults/persistent/physics/pvdProfile": true,
+    "/defaults/persistent/physics/pvdStreamToFile": false,
+    "/defaults/persistent/physics/testRunnerFilter": "",
+    "/defaults/persistent/physics/testRunnerSelection": {},
+    "/defaults/persistent/physics/useActiveCudaContext": false,
+    "/defaults/persistent/physics/useLocalMeshCache": true,
+    "/defaults/persistent/physics/visualizationCollisionMesh": null,
+    "/defaults/persistent/physics/visualizationDisplayAttachments": 0,
+    "/defaults/persistent/physics/visualizationDisplayAttachmentsHideActor0": false,
+    "/defaults/persistent/physics/visualizationDisplayAttachmentsHideActor1": false,
+    "/defaults/persistent/physics/visualizationDisplayColliderNormals": false,
+    "/defaults/persistent/physics/visualizationDisplayColliders": 0,
+    "/defaults/persistent/physics/visualizationDisplayDeformableAttachments": 0,
+    "/defaults/persistent/physics/visualizationDisplayDeformableBodies": 0,
+    "/defaults/persistent/physics/visualizationDisplayDeformableBodyType": 0,
+    "/defaults/persistent/physics/visualizationDisplayDeformableMeshType": 0,
+    "/defaults/persistent/physics/visualizationDisplayDeformableSurfaces": 0,
+    "/defaults/persistent/physics/visualizationDisplayDeformables": 0,
+    "/defaults/persistent/physics/visualizationDisplayJoints": true,
+    "/defaults/persistent/physics/visualizationDisplayMassProperties": 0,
+    "/defaults/persistent/physics/visualizationDisplayParticles": 0,
+    "/defaults/persistent/physics/visualizationDisplayParticlesClothMeshLines": false,
+    "/defaults/persistent/physics/visualizationDisplayParticlesParticlePositions": 0,
+    "/defaults/persistent/physics/visualizationDisplayParticlesParticleRadius": 2,
+    "/defaults/persistent/physics/visualizationDisplayParticlesShowDeformableMesh": false,
+    "/defaults/persistent/physics/visualizationDisplayParticlesShowDeformableParticles": true,
+    "/defaults/persistent/physics/visualizationDisplayParticlesShowDiffuseParticles": false,
+    "/defaults/persistent/physics/visualizationDisplayParticlesShowFluidSurface": false,
+    "/defaults/persistent/physics/visualizationDisplayParticlesShowParticleSetParticles": true,
+    "/defaults/persistent/physics/visualizationDisplayTendons": 0,
+    "/defaults/persistent/physics/visualizationGap": 0.20000000298023224,
+    "/defaults/persistent/physics/visualizationQueryUsdrtForTraversal": false,
+    "/defaults/persistent/physics/visualizationSimplifyAtDistance": 2500.0,
+    "/defaults/persistent/physics/visualizationSimulationDataVisualizer": false,
+    "/defaults/persistent/physics/visualizationSimulationOutput": false,
+    "/defaults/persistent/simulation/minFrameRate": 30,
+    "/defaults/physics/addMenuSelectionLimit": 1000,
+    "/defaults/physics/addMenuSubtreeLimit": 100000,
+    "/defaults/physics/autoPopupSimulationOutputWindow": true,
+    "/defaults/physics/collisionApproximateCones": false,
+    "/defaults/physics/collisionApproximateCylinders": false,
+    "/defaults/physics/cooking/ujitsoCollisionCooking": true,
+    "/defaults/physics/cooking/ujitsoCookingDevKey": 0,
+    "/defaults/physics/cooking/ujitsoRemoteCacheEnabled": false,
+    "/defaults/physics/cudaDevice": -1,
+    "/defaults/physics/defaultSimulator": "PhysX",
+    "/defaults/physics/demoAssetsPath": "",
+    "/defaults/physics/developmentMode": false,
+    "/defaults/physics/disableContactProcessing": false,
+    "/defaults/physics/disableSleeping": false,
+    "/defaults/physics/enableAttachmentAuthoring": true,
+    "/defaults/physics/enableExtendedJointAngles": false,
+    "/defaults/physics/enableParticleAuthoring": true,
+    "/defaults/physics/enableSynchronousKernelLaunches": false,
+    "/defaults/physics/exposePrimPathNames": true,
+    "/defaults/physics/exposeProfilerData": true,
+    "/defaults/physics/forceGrab": true,
+    "/defaults/physics/forceParseOnlySingleScene": null,
+    "/defaults/physics/logRobotics": false,
+    "/defaults/physics/logSceneMultiGPU": false,
+    "/defaults/physics/maxNumberOfPhysXErrors": 1000,
+    "/defaults/physics/mouseGrab": true,
+    "/defaults/physics/mouseGrabIgnoreInvisible": true,
+    "/defaults/physics/mouseInteractionEnabled": true,
+    "/defaults/physics/mousePush": 1000.0,
+    "/defaults/physics/numEventPumpsForTestStageSetup": 3,
+    "/defaults/physics/omniPvdIsOVDStage": false,
+    "/defaults/physics/omniPvdIsRecording": false,
+    "/defaults/physics/omniPvdOutputEnabled": false,
+    "/defaults/physics/outputVelocitiesLocalSpace": false,
+    "/defaults/physics/physxDispatcher": false,
+    "/defaults/physics/pickingForce": 1.0,
+    "/defaults/physics/resetOnStop": true,
+    "/defaults/physics/sceneMultiGPUMode": 0,
+    "/defaults/physics/showCollisionGroupsWindow": false,
+    "/defaults/physics/simulateEmptyScene": false,
+    "/defaults/physics/suppressReadback": false,
+    "/defaults/physics/testRunnerRepeats": 1,
+    "/defaults/physics/testRunnerStatus": {},
+    "/defaults/physics/testsAssetsPath": "",
+    "/defaults/physics/updateParticlesToUsd": true,
+    "/defaults/physics/updateResidualsToUsd": true,
+    "/defaults/physics/updateToUsd": true,
+    "/defaults/physics/updateVelocitiesToUsd": true,
+    "/defaults/simulation/jointBodyTransformCheckTolerance": 0.0010000000474974513,
+    "/persistent/physics/autocreatePhysicsScene": true,
+    "/persistent/physics/cooking/ujitsoCookingMaxProcessCount": 16,
+    "/persistent/physics/enableDeformableBeta": 0,
+    "/persistent/physics/localMeshCacheSizeMB": 1024,
+    "/persistent/physics/massDistributionManipulator": false,
+    "/persistent/physics/numThreads": 8,
+    "/persistent/physics/omniPvdOvdRecordingDirectory": "",
+    "/persistent/physics/overrideGPUSettings": -1,
+    "/persistent/physics/pvdDebug": true,
+    "/persistent/physics/pvdEnabled": false,
+    "/persistent/physics/pvdIP": "127.0.0.1",
+    "/persistent/physics/pvdMemory": true,
+    "/persistent/physics/pvdOutputDirectory": "",
+    "/persistent/physics/pvdProfile": true,
+    "/persistent/physics/pvdStreamToFile": false,
+    "/persistent/physics/testRunnerFilter": "",
+    "/persistent/physics/testRunnerSelection": {},
+    "/persistent/physics/useActiveCudaContext": false,
+    "/persistent/physics/useLocalMeshCache": true,
+    "/persistent/physics/visualizationCollisionMesh": null,
+    "/persistent/physics/visualizationDisplayAttachments": 0,
+    "/persistent/physics/visualizationDisplayAttachmentsHideActor0": false,
+    "/persistent/physics/visualizationDisplayAttachmentsHideActor1": false,
+    "/persistent/physics/visualizationDisplayColliderNormals": false,
+    "/persistent/physics/visualizationDisplayColliders": 0,
+    "/persistent/physics/visualizationDisplayDeformableAttachments": 0,
+    "/persistent/physics/visualizationDisplayDeformableBodies": 0,
+    "/persistent/physics/visualizationDisplayDeformableBodyType": 0,
+    "/persistent/physics/visualizationDisplayDeformableMeshType": 0,
+    "/persistent/physics/visualizationDisplayDeformableSurfaces": 0,
+    "/persistent/physics/visualizationDisplayDeformables": 0,
+    "/persistent/physics/visualizationDisplayJoints": false,
+    "/persistent/physics/visualizationDisplayMassProperties": 0,
+    "/persistent/physics/visualizationDisplayParticles": 0,
+    "/persistent/physics/visualizationDisplayParticlesClothMeshLines": false,
+    "/persistent/physics/visualizationDisplayParticlesParticlePositions": 0,
+    "/persistent/physics/visualizationDisplayParticlesParticleRadius": 2,
+    "/persistent/physics/visualizationDisplayParticlesShowDeformableMesh": false,
+    "/persistent/physics/visualizationDisplayParticlesShowDeformableParticles": true,
+    "/persistent/physics/visualizationDisplayParticlesShowDiffuseParticles": false,
+    "/persistent/physics/visualizationDisplayParticlesShowFluidSurface": false,
+    "/persistent/physics/visualizationDisplayParticlesShowParticleSetParticles": true,
+    "/persistent/physics/visualizationDisplayTendons": 0,
+    "/persistent/physics/visualizationGap": 0.20000000298023224,
+    "/persistent/physics/visualizationQueryUsdrtForTraversal": false,
+    "/persistent/physics/visualizationSimplifyAtDistance": 2500.0,
+    "/persistent/physics/visualizationSimulationDataVisualizer": false,
+    "/persistent/physics/visualizationSimulationOutput": false,
+    "/persistent/simulation/minFrameRate": 60,
+    "/physics/addMenuSelectionLimit": 1000,
+    "/physics/addMenuSubtreeLimit": 100000,
+    "/physics/autoPopupSimulationOutputWindow": false,
+    "/physics/collisionApproximateCones": false,
+    "/physics/collisionApproximateCylinders": false,
+    "/physics/cooking/ujitsoCollisionCooking": true,
+    "/physics/cooking/ujitsoCookingDevKey": 0,
+    "/physics/cooking/ujitsoRemoteCacheEnabled": false,
+    "/physics/cudaDevice": 0,
+    "/physics/defaultSimulator": "PhysX",
+    "/physics/demoAssetsPath": "",
+    "/physics/developmentMode": false,
+    "/physics/disableContactProcessing": false,
+    "/physics/disableSleeping": false,
+    "/physics/enableAttachmentAuthoring": true,
+    "/physics/enableExtendedJointAngles": false,
+    "/physics/enableParticleAuthoring": true,
+    "/physics/enableSynchronousKernelLaunches": false,
+    "/physics/exposePrimPathNames": true,
+    "/physics/exposeProfilerData": true,
+    "/physics/fabricEnabled": null,
+    "/physics/fabricUpdateTransformations": null,
+    "/physics/forceGrab": true,
+    "/physics/forceParseOnlySingleScene": null,
+    "/physics/logRobotics": false,
+    "/physics/logSceneMultiGPU": false,
+    "/physics/maxNumberOfPhysXErrors": 1000,
+    "/physics/mouseGrab": true,
+    "/physics/mouseGrabIgnoreInvisible": true,
+    "/physics/mouseInteractionEnabled": true,
+    "/physics/mousePush": 1000.0,
+    "/physics/numEventPumpsForTestStageSetup": 3,
+    "/physics/omniPvdIsOVDStage": false,
+    "/physics/omniPvdIsRecording": false,
+    "/physics/omniPvdOutputEnabled": false,
+    "/physics/outputVelocitiesLocalSpace": false,
+    "/physics/physxDispatcher": false,
+    "/physics/pickingForce": 1.0,
+    "/physics/resetOnStop": true,
+    "/physics/sceneMultiGPUMode": 0,
+    "/physics/showCollisionGroupsWindow": false,
+    "/physics/simulateEmptyScene": false,
+    "/physics/suppressReadback": false,
+    "/physics/testRunnerRepeats": 1,
+    "/physics/testRunnerStatus": {},
+    "/physics/testsAssetsPath": "",
+    "/physics/updateParticlesToUsd": true,
+    "/physics/updateResidualsToUsd": true,
+    "/physics/updateToUsd": true,
+    "/physics/updateVelocitiesToUsd": true,
+    "/simulation/jointBodyTransformCheckTolerance": 0.0010000000474974513
+  }
+}

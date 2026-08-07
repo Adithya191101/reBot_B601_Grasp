@@ -181,6 +181,22 @@ def _load_urdf(args, report_log) -> str:
     status, prim_path = omni.kit.commands.execute(
         "URDFParseAndImportFile", urdf_path=str(args.urdf),
         import_config=cfg, get_articulation_root=True)
+    # The importer authors drive type "acceleration" with the URDF effort as
+    # maxForce; on the low-inertia wrist that cap starves the drive and joint4
+    # settles ~0.81 rad from target with a constant creep. Flipping the drives
+    # to "force" (what the hand-authored USD uses) drops the error to 0.004 rad
+    # -- measured in artifacts/render_exp/urdf_force.json.
+    from isaacsim.core.utils.stage import get_current_stage as _gcs
+    from pxr import UsdPhysics as _UP
+    _stage = _gcs()
+    _flipped = 0
+    for _pr in _stage.Traverse():
+        for _token in ("angular", "linear"):
+            _drv = _UP.DriveAPI.Get(_pr, _token)
+            if _drv and _drv.GetTypeAttr().Get() == "acceleration":
+                _drv.GetTypeAttr().Set("force")
+                _flipped += 1
+    report_log(f"[load] flipped {_flipped} drives from acceleration to force")
     report_log(f"[load] URDF {args.urdf}")
     report_log(f"[load] articulation root: {prim_path}")
     return prim_path

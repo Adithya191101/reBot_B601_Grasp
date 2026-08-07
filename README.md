@@ -47,6 +47,16 @@ vcs import src < upstream.repos
 arm with `move_to_traj` on Pinocchio — no ROS, no MoveIt, no cuMotion anywhere in its control
 path — so that work was never on the route to this goal.
 
+## Root-cause analysis: frozen render, joint4 sag, grasp SOTA, prior art
+
+**[ANALYSIS.md](ANALYSIS.md)** — both standing mysteries solved with measured
+fixes: the arm rendered frozen because the session repair's `resetXformStack`
+disables PhysX→USD writeback on the repaired links (fix: capture-time tensor→USD
+sync, `scripts/b601_usd_sync.py`); the imported URDF's joint4 sag was the
+importer's `acceleration` drive type starving the low-inertia wrist (fix: flip
+drives to `force`, 0.807→0.004 rad). Plus a 14-agent worldwide prior-art sweep:
+no one else has published autonomous contact grasping of this arm in Isaac Sim.
+
 ## Inspect the arm yourself — keyboard teleop
 
 ```bash
@@ -63,9 +73,9 @@ step, `O`/`C` open/close, `I` toggles Cartesian IK (`W A S D Q E`), `H` home,
 A headless self-test drives a scripted sweep instead:
 `--headless --selftest 3`.
 
-⚠️ **Known, reproducible:** on the URDF import, **joint4 sits ~0.81 rad from its
-commanded target** while every other joint tracks to <0.02 rad. Independently
-reproduced by `b601_urdf_import_probe.py` and by this teleop. Unresolved.
+**Resolved:** the former joint4 sag (~0.81 rad) was the importer authoring
+`drive:type="acceleration"`; the teleop now flips imported drives to `force`
+and joint4 tracks to 0.03 rad. Full story in [ANALYSIS.md](ANALYSIS.md).
 
 ## Regression support: the ten-scene smoke test
 
