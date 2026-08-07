@@ -1,0 +1,15 @@
+# Frozen simulation topic contract (design doc §13.4, decision record).
+# Task code and MoveIt NEVER see raw Isaac topics; only the adapters do.
+# Changing any name here is a recorded decision, not an edit.
+sim_topics:
+  joint_states_raw: /rebot_sim/joint_states_raw          # Isaac Sim -> joint-state adapter
+  arm_trajectory: /rebot_sim_arm_controller/follow_joint_trajectory  # trajectory adapter -> sim JTC
+  gripper_trajectory: /gripper_controller/follow_joint_trajectory    # gripper adapter -> sim jaw JTC
+  clock: /clock                                          # Isaac Sim is the single owner
+canonical_topics:
+  joint_states: /joint_states                            # exactly one publisher per profile
+  trajectory_action: /rebot_controller/follow_joint_trajectory
+  gripper_action: /rebot_controller/gripper_command
+rules:
+  use_sim_time: true          # every ROS node in the sim profile
+  single_clock_owner: isaac_sim
