@@ -116,6 +116,23 @@ light (probed thresholds); frame-diagnostic `orientation_gap_deg` reads ~180°
 through the Isaac gripper_link frame (known USD-vs-URDF gripper mount π-flip;
 diagnostic-only, the Pinocchio IK chain is self-consistent — verified by FK).
 
+## Video
+
+Live recording conflicts with the wrist camera (two render products starve
+each other: capture stalls at exactly 78 frames and the wrist RGB washes out,
+killing marker detection). Videos are made by replay — the demo logs every
+per-step joint command to `traj.npz` next to `--out`, and:
+
+```bash
+TERM=xterm OMNI_KIT_ACCEPT_EULA=YES PRIVACY_CONSENT=N \
+  ~/isaaclab-venv/bin/python scripts/b601_banana_demo.py \
+    --repair-nested-xforms --replay artifacts/banana/traj.npz \
+    --record artifacts/banana/b601_banana.mp4 --out artifacts/banana/replay.json
+```
+
+renders the identical run (same scene, same physics, same commands) with only
+the observer camera: 81 s, calibration wiggle through grasp, lift and release.
+
 ## Files
 
 - `scripts/b601_banana_demo.py` — the whole loop, all gates
