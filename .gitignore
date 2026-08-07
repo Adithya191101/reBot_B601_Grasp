@@ -1,6 +1,6 @@
 # upstream sources — pinned in upstream.repos, restore with:
 #   vcs import src < upstream.repos
-src/
+/src/
 
 # ROS 2 workspace build artifacts
 build/

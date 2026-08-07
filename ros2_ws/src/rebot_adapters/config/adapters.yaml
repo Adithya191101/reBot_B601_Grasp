@@ -1,0 +1,43 @@
+# Node parameters for the three canonical reBot adapters.
+# Joint-state and trajectory blocks follow design doc sec. 9.1 / 9.2
+# verbatim; the gripper block is assembled from sec. 4.4-4.6 and 9.3
+# (the doc gives no explicit parameter block for the gripper adapter).
+
+rebot_joint_state_adapter:
+  ros__parameters:
+    mode: real                 # sim | real
+    output_topic: /joint_states
+    arm_input_topic: /rebotarm/joint_states
+    gripper_input_topic: /rebotarm/gripper/state
+    sim_input_topic: /rebot_sim/joint_states_raw
+    stale_timeout_sec: 0.20
+    publish_rate_hz: 100.0
+    require_all_arm_joints: true
+    # Required in real mode for the inverse motor_rad -> q_jaw_m map.
+    calibration_file: ""       # e.g. <share>/rebot_adapters/config/gripper_calibration.yaml
+
+rebot_trajectory_adapter:
+  ros__parameters:
+    mode: real
+    public_action: /rebot_controller/follow_joint_trajectory
+    real_action: /rebotarm/follow_joint_trajectory
+    sim_action: /rebot_sim_arm_controller/follow_joint_trajectory
+    joint_names: [joint1, joint2, joint3, joint4, joint5, joint6]
+    goal_connect_timeout_sec: 5.0
+    result_timeout_margin_sec: 3.0
+    reorder_joint_names: false
+    validate_segment_velocity: true
+
+rebot_gripper_adapter:
+  ros__parameters:
+    mode: real
+    public_action: /rebot_controller/gripper_command
+    real_action: /rebotarm/gripper/command
+    real_state_topic: /rebotarm/gripper/state
+    sim_action: /gripper_controller/follow_joint_trajectory
+    jaw_state_topic: /rebot/gripper_joint_states
+    # Real mode refuses to start with an empty or non-monotonic table.
+    calibration_file: ""       # e.g. <share>/rebot_adapters/config/gripper_calibration.yaml
+    sim_motion_duration_sec: 1.0
+    goal_connect_timeout_sec: 5.0
+    result_timeout_sec: 10.0

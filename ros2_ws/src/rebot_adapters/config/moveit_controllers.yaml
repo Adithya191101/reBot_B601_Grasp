@@ -1,0 +1,22 @@
+# MoveIt simple-controller-manager configuration shared by sim and real.
+# Verbatim from rebot_b601dm_isaac_ros_implementation_design_v2.md sec. 10.2.
+# No MoveIt configuration changes when switching profiles.
+
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - rebot_arm
+    - rebot_gripper
+
+  rebot_arm:
+    action_ns: /rebot_controller/follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints: [joint1, joint2, joint3, joint4, joint5, joint6]
+
+  rebot_gripper:
+    action_ns: /rebot_controller/gripper_command
+    type: GripperCommand
+    default: true
+    joints: [gripper_joint1]

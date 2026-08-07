@@ -1,0 +1,21 @@
+# Gripper calibration map template.
+# Verbatim structure from design doc sec. 4.5.
+#
+# NOTE: `samples` is intentionally empty here. Real mode MUST refuse to
+# start with an empty or non-monotonic table; populate this file with the
+# measured calibration procedure before real bringup. Each sample carries
+# all three coordinates:
+#   - {q_jaw_m: <model joint>, aperture_m: <measured inner opening>, motor_rad: <measured motor angle>}
+
+version: 1
+coordinate:
+  command: q_jaw_m
+  observed_geometry: aperture_m
+  hardware: motor_rad
+operational_range:
+  q_jaw_min_m: 0.0
+  q_jaw_max_m: 0.045   # upstream DM demo baseline; replace after measurement
+samples: []             # populated by the calibration procedure
+interpolation: monotonic_piecewise_linear
+clamp: true
+goal_tolerance_q_m: 0.0015

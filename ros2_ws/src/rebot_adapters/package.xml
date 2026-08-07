@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rebot_adapters</name>
+  <version>0.1.0</version>
+  <description>
+    Canonical reBot B601-DM adapters: joint-state merger, FollowJointTrajectory
+    validation/routing adapter, and GripperCommand (q_jaw_m, metres) adapter.
+    Pure-Python cores under rebot_adapters/core are rclpy-free and unit-tested
+    without ROS.
+  </description>
+  <maintainer email="nirty.4u@gmail.com">Adithya</maintainer>
+  <license>Apache-2.0</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <!-- rebotarm_msgs is imported lazily and only needed in real mode;
+       declared optional so the sim profile builds without the Seeed stack. -->
+  <exec_depend condition="$REBOT_REAL_DRIVER == 1">rebotarm_msgs</exec_depend>
+
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
