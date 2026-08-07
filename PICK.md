@@ -33,6 +33,25 @@ permits and which is not scored motion.
 **The release check is what makes the lift meaningful.** An object that stays put
 when the jaw opens was never held by contact. This one falls 321.6 mm.
 
+## Recording the run
+
+```bash
+TERM=xterm OMNI_KIT_ACCEPT_EULA=YES PRIVACY_CONSENT=N \
+  ~/isaaclab-venv/bin/python scripts/b601_pick.py \
+    --repair-nested-xforms --record artifacts/video/b601_pick.mp4 \
+    --out artifacts/video/pick_recorded.json
+```
+
+`--record` hooks `world.step` from a fixed observer camera and encodes with
+ffmpeg/libx264 (1280x720, 30 fps, ~35 s). Videos are gitignored; regenerate with
+the command above.
+
+⚠️ **The first recorded run produced 1554 completely black frames.** The pick
+scene had no lights: physics never needed them, so it ran headless for the whole
+of P0-P3 without any. This is the *same* defect already documented below as bug
+2 in the Isaac capture backend, fixed there and never carried across. Lights are
+now created unconditionally in the pick scene.
+
 ## Asset defect #4 — the one that blocked the grasp
 
 P0 found three defects. Trying to actually grasp with the asset found a fourth,

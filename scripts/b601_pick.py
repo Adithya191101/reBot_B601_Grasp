@@ -227,6 +227,113 @@ def _refine_finger_colliders(stage: Any, finger_paths: list[str]) -> dict:
             "prims_inspected": inspected, "persisted_to_disk": False}
 
 
+class Recorder:
+    """Records the whole run to an MP4 from a fixed observer camera.
+
+    Hooks ``world.step`` rather than each call site: the pick drives physics from
+    several places (``probe._step_target``, the close loop, the hold loops), and
+    patching the one method captures all of them without restructuring any of it.
+    Frames are written straight to PNG and encoded by ffmpeg at the end, so a long
+    run does not have to fit in memory.
+    """
+
+    CAM_PATH = "/World/observer_cam"
+
+    def __init__(self, out_mp4: Path, stage: Any, every: int = 6,
+                 fps: int = 30, width: int = 1280, height: int = 720,
+                 look_at: np.ndarray | None = None):
+        import omni.replicator.core as rep
+        import isaacsim.core.utils.prims as prim_utils
+        from pxr import Gf, UsdGeom
+
+        self.out_mp4 = Path(out_mp4)
+        self.frame_dir = self.out_mp4.parent / (self.out_mp4.stem + "_frames")
+        self.frame_dir.mkdir(parents=True, exist_ok=True)
+        for old in self.frame_dir.glob("*.png"):
+            old.unlink()
+        self.every = int(every)
+        self.fps = int(fps)
+        self.count = 0
+        self.calls = 0
+
+        # Frame the whole robot plus the workspace: the base sits at the origin
+        # and the jaw works near x=0.25, so aiming at the jaw alone clips the arm
+        # off the left edge. Aim between them and stand well back.
+        target = np.array([0.16, 0.02, 0.20]) if look_at is None else np.asarray(look_at)
+        eye = target + np.array([0.80, -0.95, 0.50])
+        fwd = target - eye
+        fwd /= np.linalg.norm(fwd)
+        right = np.cross(fwd, np.array([0.0, 0.0, 1.0]))
+        right /= np.linalg.norm(right)
+        down = np.cross(fwd, right)
+        R_opt = np.column_stack([right, down, fwd])
+        R_usd = R_opt @ np.diag([1.0, -1.0, -1.0])
+
+        prim_utils.create_prim(self.CAM_PATH, "Camera")
+        cam = stage.GetPrimAtPath(self.CAM_PATH)
+        cam.GetAttribute("clippingRange").Set(Gf.Vec2f(0.01, 1000.0))
+        cam.GetAttribute("focalLength").Set(22.0)      # ~50 deg HFOV
+        x = UsdGeom.Xformable(cam)
+        x.ClearXformOpOrder()
+        m = Gf.Matrix4d()
+        m.SetIdentity()
+        m.SetRotateOnly(Gf.Matrix3d(*[float(v) for v in R_usd.T.flatten()]))
+        m.SetTranslateOnly(Gf.Vec3d(*[float(v) for v in eye]))
+        x.AddTransformOp().Set(m)
+
+        self._rp = rep.create.render_product(self.CAM_PATH, (width, height))
+        self._annot = rep.AnnotatorRegistry.get_annotator("rgb")
+        self._annot.attach(self._rp)
+
+    def attach(self, world: Any) -> None:
+        original = world.step
+
+        def step_and_capture(*args, **kwargs):
+            kwargs["render"] = True          # the annotator needs a rendered frame
+            result = original(*args, **kwargs)
+            self.calls += 1
+            if self.calls % self.every == 0:
+                self.capture()
+            return result
+
+        world.step = step_and_capture
+
+    def capture(self) -> None:
+        import cv2
+        data = self._annot.get_data()
+        if data is None:
+            return
+        frame = np.asarray(data)
+        if frame.ndim != 3 or frame.shape[0] == 0:
+            return
+        bgr = cv2.cvtColor(frame[..., :3].astype(np.uint8), cv2.COLOR_RGB2BGR)
+        cv2.imwrite(str(self.frame_dir / f"f_{self.count:06d}.png"), bgr)
+        self.count += 1
+
+    def finalize(self) -> dict:
+        import shutil
+        import subprocess
+        if self.count == 0:
+            return {"frames": 0, "mp4": None, "error": "no frames captured"}
+        ffmpeg = shutil.which("ffmpeg") or str(Path.home() / "bin" / "ffmpeg")
+        cmd = [ffmpeg, "-y", "-loglevel", "error", "-framerate", str(self.fps),
+               "-i", str(self.frame_dir / "f_%06d.png"),
+               "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+               "-pix_fmt", "yuv420p", str(self.out_mp4)]
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        info = {"frames": self.count, "fps": self.fps,
+                "mp4": str(self.out_mp4), "ffmpeg_returncode": proc.returncode,
+                "duration_s": round(self.count / self.fps, 2)}
+        if proc.returncode != 0:
+            info["ffmpeg_stderr"] = proc.stderr[-500:]
+        else:
+            for f in self.frame_dir.glob("*.png"):
+                f.unlink()
+            self.frame_dir.rmdir()
+            info["bytes"] = self.out_mp4.stat().st_size
+        return info
+
+
 def _bind_physics_material(stage: Any, prim_path: str, material_path: str) -> bool:
     """Bind a physics material to an existing prim (including mesh colliders)."""
     from pxr import UsdShade
@@ -308,6 +415,24 @@ def _run(args: argparse.Namespace, report: Report, sim_app: Any) -> None:
                       "contacts remain enabled")
 
     # ---- scene ------------------------------------------------------------
+    recorder = None
+    if args.record:
+        recorder = Recorder(Path(args.record), stage)
+        report.data["recording"] = {"requested": str(args.record)}
+
+    # Lights. Physics does not need them, so the pick ran headless for weeks
+    # without any -- but the RTX renderer returns an all-black RGB buffer without
+    # lighting, which is exactly the defect recorded in PICK.md and fixed only in
+    # the capture backend. The first recorded run produced 1554 black frames.
+    import isaacsim.core.utils.prims as prim_utils
+    prim_utils.create_prim("/World/dome_light", "DomeLight",
+                           attributes={"inputs:intensity": 800.0,
+                                       "inputs:color": (1.0, 1.0, 1.0)})
+    prim_utils.create_prim("/World/key_light", "DistantLight",
+                           attributes={"inputs:intensity": 2200.0,
+                                       "inputs:angle": 2.0},
+                           orientation=np.array([0.9239, 0.0, 0.3827, 0.0]))
+
     world.scene.add(GroundPlane(prim_path=GROUND_PRIM_PATH, size=4.0))
     grip_material = PhysicsMaterial(
         prim_path="/World/physics_materials/grip",
@@ -320,6 +445,8 @@ def _run(args: argparse.Namespace, report: Report, sim_app: Any) -> None:
                                       name="b601_dm")
     world.scene.add(articulation)
     world.reset()
+    if recorder is not None:
+        recorder.attach(world)
 
     dof_names = list(articulation.dof_names)
     report.require("exact eight-DOF name order",
@@ -677,6 +804,9 @@ def _run(args: argparse.Namespace, report: Report, sim_app: Any) -> None:
         note="an object that does not fall when released was never held by contact",
     )
 
+    if recorder is not None:
+        report.data["recording"] = recorder.finalize()
+
     report.data["state_monitor"] = {
         "samples": monitor.samples,
         "max_base_position_drift_m": monitor.max_base_position_drift_m,
@@ -695,6 +825,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                     default=REPO_ROOT / "artifacts" / "b601_pick" / "b601_pick.json")
     ap.add_argument("--repair-nested-xforms", action="store_true")
     ap.add_argument("--render", action="store_true")
+    ap.add_argument("--record", type=Path, default=None, metavar="OUT.mp4",
+                    help="record the whole run to an MP4 from a fixed observer camera")
     ap.add_argument("--headful", action="store_true",
                     help="open the Isaac Sim window (implies you want --render)")
     ap.add_argument("--hold-open", type=float, default=0.0, metavar="SECONDS",

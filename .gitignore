@@ -28,6 +28,7 @@ artifacts/urdf_import/*
 !artifacts/hand_eye/
 artifacts/hand_eye/*
 !artifacts/hand_eye/b601_hand_eye.json
+*.mp4
 *.mcap
 *.db3
 *.npy
