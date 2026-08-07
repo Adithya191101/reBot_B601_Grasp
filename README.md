@@ -47,6 +47,26 @@ vcs import src < upstream.repos
 arm with `move_to_traj` on Pinocchio — no ROS, no MoveIt, no cuMotion anywhere in its control
 path — so that work was never on the route to this goal.
 
+## Inspect the arm yourself — keyboard teleop
+
+```bash
+TERM=xterm OMNI_KIT_ACCEPT_EULA=YES PRIVACY_CONSENT=N DISPLAY=:1 \
+  ~/isaaclab-venv/bin/python scripts/b601_teleop.py            # imported URDF
+  ~/isaaclab-venv/bin/python scripts/b601_teleop.py --source usd   # shipped USD
+```
+
+`1`-`6` pick an arm joint, `7` the gripper, `UP`/`DOWN` move it, `[`/`]` change
+step, `O`/`C` open/close, `I` toggles Cartesian IK (`W A S D Q E`), `H` home,
+`R` reset, `ESC` quit. Isaac swallows stdout, so watch
+`tail -f artifacts/teleop/status.txt`.
+
+A headless self-test drives a scripted sweep instead:
+`--headless --selftest 3`.
+
+⚠️ **Known, reproducible:** on the URDF import, **joint4 sits ~0.81 rad from its
+commanded target** while every other joint tracks to <0.02 rad. Independently
+reproduced by `b601_urdf_import_probe.py` and by this teleop. Unresolved.
+
 ## Regression support: the ten-scene smoke test
 
 Implemented and passing on the Isaac Sim backend. **[SMOKE_TEST.md](SMOKE_TEST.md) has the

@@ -841,6 +841,24 @@ def main(argv: list[str] | None = None) -> int:
 
     from isaacsim import SimulationApp
     sim_app = SimulationApp({"headless": not args.headful})
+
+    # PhysX simulates in Fabric; the render product may draw from USD. P0's
+    # session repair pins an explicit transform on all 9 nested rigid bodies, so
+    # if the renderer reads USD the whole arm draws at its spawn pose while
+    # physics moves it -- which is exactly what the first recording showed: the
+    # arm centroid moved 0.23 px while the jaw travelled 100 mm. Push physics
+    # transforms back so what is drawn is what is simulated.
+    if args.record or args.headful:
+        import carb
+        _settings = carb.settings.get_settings()
+        for _key in ("/physics/updateToUsd",
+                     "/physics/updateParticlesToUsd",
+                     "/physics/fabricUpdateTransformations",
+                     "/app/useFabricSceneDelegate"):
+            try:
+                _settings.set_bool(_key, True)
+            except Exception:                                  # noqa: BLE001
+                pass
     try:
         _run(args, report, sim_app)
     except PickFailure as exc:
