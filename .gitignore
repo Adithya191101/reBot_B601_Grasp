@@ -25,6 +25,9 @@ artifacts/b601_pick/*
 !artifacts/urdf_import/
 artifacts/urdf_import/*
 !artifacts/urdf_import/with_gripper.json
+!artifacts/hand_eye/
+artifacts/hand_eye/*
+!artifacts/hand_eye/b601_hand_eye.json
 *.mcap
 *.db3
 *.npy

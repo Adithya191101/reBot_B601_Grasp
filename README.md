@@ -18,7 +18,7 @@ Isaac Sim:
 | **P1** ✅ | Close both physical finger joints on one object and validate contacts — first-contact aperture measured at 41.0 mm for a 40.0 mm object. |
 | **P2** ✅ | `GRASP → CLOSE → LIFT → HOLD → RELEASE` with fixed joint targets. 59.8 mm rise, 1.0 s hold, falls 321.6 mm on release. |
 | **P3** ✅ | The demo's own interface — `move_to_traj` / `open_gripper` / `grasp` / `release_gripper` / `get_tcp_pose` — on the pinned `reBotArm_control_py` Pinocchio IK. Cartesian accuracy 0.13–0.33 mm; pick succeeds under Cartesian command (54.5 mm rise, 6.4 mm slip). See [P3.md](P3.md). |
-| **P3b** | Hand-eye calibration (`AX=XB`), validated against the known sim extrinsic. |
+| **P3b** ✅ | Eye-in-hand `AX=XB` with the vendor's own solver, scored against the true mount: **2.4–4.1 mm / 0.5–1.2°**, end-to-end marker localisation **5–10 mm**. See [P3B.md](P3B.md). |
 | **P4** | Feed the same executor an oracle grasp, then a YOLOE-derived grasp. |
 
 A P2 pass requires the object to rise at least 50 mm and remain held for at
@@ -29,9 +29,10 @@ feedback. Teleporting, parenting, or attaching the object does not count.
 object through physics — **59.8 mm rise, 1.0 s hold, 3/3 repetitions, 20/20
 checks** — see **[PICK.md](PICK.md)** and `artifacts/b601_pick/b601_pick.json`.
 Getting there found a fourth asset defect: the finger colliders are convex hulls
-that leave only ~24 mm of usable jaw against 143 mm of authored travel. **P3 also passes** — the arm is now commanded by Cartesian TCP poses through the
-demo's own Pinocchio IK ([P3.md](P3.md)). P3b (hand-eye) and P4 (perception) are
-next; it does not pick itself yet.
+that leave only ~24 mm of usable jaw against 143 mm of authored travel. **P3 and P3b also pass** — the arm is commanded by Cartesian TCP poses through the
+demo's own Pinocchio IK ([P3.md](P3.md)), and eye-in-hand calibration recovers a
+known camera mount to 2.4–4.1 mm ([P3B.md](P3B.md)). **P4 (perception) is the last
+step**; it does not pick itself yet.
 
 **Upstream sources are cloned and read.** `upstream.repos` pins `reBot-DevArm-Grasp`,
 `reBotArmController_ROS2`, `reBot-Isaacsim`, and **`reBotArm_control_py`** — the demo's own
