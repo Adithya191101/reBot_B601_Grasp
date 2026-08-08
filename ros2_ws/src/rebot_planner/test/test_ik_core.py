@@ -127,3 +127,23 @@ def test_quat_helpers():
         quat_xyzw_to_rotation(0, 0, 0, 0)
     T = pose_to_transform((1, 2, 3), (0, 0, 0, 1))
     assert np.allclose(T[:3, 3], [1, 2, 3])
+
+
+def test_quat_to_rotation_matches_pinocchio_for_general_orientations():
+    """Regression: general (non-yaw) quaternions must round-trip exactly.
+
+    The original row-3 element swap in quat_xyzw_to_rotation was invisible
+    for identity and yaw-only quaternions (x = y = 0) -- everything the
+    original test covered -- but wrong by ~51 deg for the M5 ready-pose
+    goal (a 180-deg-class quaternion with dominant x and z).
+    """
+    import pinocchio as pin
+
+    rng = np.random.default_rng(11)
+    cases = [q / np.linalg.norm(q) for q in rng.normal(size=(50, 4))]
+    # The exact quaternion that exposed the bug (M5 vendor ready pose).
+    cases.append(np.array([0.939373, -0.000017, -0.342898, -0.000044]))
+    for x, y, z, w in cases:
+        R = quat_xyzw_to_rotation(x, y, z, w)
+        R_pin = pin.Quaternion(np.array([x, y, z, w])).toRotationMatrix()
+        assert np.allclose(R, R_pin, atol=1e-9), (x, y, z, w)

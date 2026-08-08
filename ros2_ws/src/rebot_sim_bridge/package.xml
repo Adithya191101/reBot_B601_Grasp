@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rebot_sim_bridge</name>
+  <version>0.1.0</version>
+  <description>
+    M5 sim-profile glue: FollowJointTrajectory shim controllers that execute
+    validated goals as interpolated JointState commands on the Isaac bridge's
+    /isaac_joint_commands topic (the rearm environment's closed loop), plus
+    the sim-profile launch file starting adapters (sim mode), shims and the
+    Pinocchio planner under use_sim_time.
+  </description>
+  <maintainer email="nirty.4u@gmail.com">Adithya</maintainer>
+  <license>Apache-2.0</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+  <exec_depend>rebot_adapters</exec_depend>
+  <exec_depend>rebot_planner</exec_depend>
+
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

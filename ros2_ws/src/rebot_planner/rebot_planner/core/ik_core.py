@@ -56,11 +56,16 @@ def quat_xyzw_to_rotation(x: float, y: float, z: float, w: float) -> np.ndarray:
     if n < 1e-12:
         raise ValueError("zero-norm quaternion")
     x, y, z, w = x / n, y / n, z / n, w / n
+    # Row 3 is [2(xz - yw), 2(yz + xw), 1 - 2(x^2 + y^2)].  An earlier
+    # version had its first two elements swapped -- invisible for identity
+    # and yaw-only quaternions (x = y = 0 zeroes both terms, which is all
+    # the unit tests exercised) but wrong by tens of degrees for general
+    # orientations; caught by the M5 parity test's ready-pose goal.
     return np.array(
         [
             [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
             [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
-            [2 * (y * z + x * w), 2 * (x * z - y * w), 1 - 2 * (x * x + y * y)],
+            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
         ]
     )
 

@@ -58,3 +58,5 @@ __pycache__/
 .venv/
 !artifacts/baseline/
 !artifacts/baseline/**
+!artifacts/m5/
+!artifacts/m5/parity.json

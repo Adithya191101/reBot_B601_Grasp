@@ -1,0 +1,186 @@
+{
+  "milestone": "M5",
+  "gate": "state/command parity (design doc sec. 21)",
+  "generated_utc": "2026-08-08T21:46:14Z",
+  "passed": true,
+  "gpu_vram": {
+    "baseline_before_bridge_mib": 20,
+    "peak_during_run_mib": 2294,
+    "bridge_delta_mib": 2274,
+    "samples": 12,
+    "note": "nvidia-smi memory.used is whole-GPU; delta vs baseline isolates the sim bridge stack"
+  },
+  "sim_bridge": {
+    "usd": "/home/nirty/reBot_B601_Grasp/assets/rearm_isaac_scene/rebot_isaac_ws/usd/rebot_b601dm.usd",
+    "articulation_root": "/rebot_b601dm/root_joint",
+    "dof_names": [
+      "joint1",
+      "joint2",
+      "joint3",
+      "joint4",
+      "joint5",
+      "joint6",
+      "gripper_joint1",
+      "gripper_joint2"
+    ],
+    "settled_q": [
+      -0.5418744683265686,
+      -1.1215262413024902,
+      -1.031408667564392,
+      0.8828019499778748,
+      -0.3269115686416626,
+      -0.4404166042804718,
+      0.07110083848237991,
+      0.07407831400632858
+    ],
+    "topics": {
+      "clock": "/clock",
+      "joint_states": "/isaac_joint_states",
+      "joint_commands": "/isaac_joint_commands"
+    }
+  },
+  "container_verdict": {
+    "probe": "m5_parity_check",
+    "started_utc": "2026-08-08T21:46:12Z",
+    "checks": [
+      {
+        "name": "vendor ready pose solved and mapped to canonical TCP",
+        "passed": true,
+        "q_ready": [
+          -0.0,
+          -1.0011,
+          -1.2316,
+          0.9305,
+          -0.0,
+          0.0001
+        ]
+      },
+      {
+        "name": "/clock arriving from Isaac Sim",
+        "passed": true
+      },
+      {
+        "name": "/isaac_joint_states and /joint_states publishing",
+        "passed": true,
+        "raw_up": true,
+        "canonical_up": true
+      },
+      {
+        "name": "canonical /joint_states carries the eight canonical joints",
+        "passed": true,
+        "names": [
+          "joint1",
+          "joint2",
+          "joint3",
+          "joint4",
+          "joint5",
+          "joint6",
+          "gripper_joint1",
+          "gripper_joint2"
+        ]
+      },
+      {
+        "name": "adapter /joint_states matches raw sim state (stamp-aligned)",
+        "passed": true,
+        "pairs_checked": 30,
+        "max_abs_diff_rad": 0.0,
+        "tolerance_rad": 1e-06
+      },
+      {
+        "name": "planner action server available",
+        "passed": true
+      },
+      {
+        "name": "MoveToPose goal accepted",
+        "passed": true
+      },
+      {
+        "name": "MoveToPose result received",
+        "passed": true,
+        "waited_wall_sec": 0.9
+      },
+      {
+        "name": "MoveToPose reports success",
+        "passed": true,
+        "message": "reached"
+      },
+      {
+        "name": "sim articulation converged to planned q_final",
+        "passed": true,
+        "max_abs_error_rad": 0.00648,
+        "tolerance_rad": 0.02
+      }
+    ],
+    "errors": [],
+    "ready_goal": {
+      "vendor_pose": {
+        "xyz": [
+          0.3,
+          0.0,
+          0.3
+        ],
+        "rpy": [
+          0.0,
+          0.7,
+          0.0
+        ],
+        "frame": "end_link (driver model)"
+      },
+      "vendor_q_ready_rad": [
+        -5.4690678553538606e-06,
+        -1.0010981857672814,
+        -1.2316273356276641,
+        0.9305364962388263,
+        -6.549301403007563e-06,
+        9.561289876356362e-05
+      ],
+      "tcp_position_m": [
+        0.2658534092190908,
+        -7.682490280420371e-06,
+        0.32428103466210134
+      ],
+      "tcp_quat_xyzw": [
+        0.939371452299039,
+        -1.5885356390775948e-05,
+        -0.3429012575938187,
+        -4.3518126983910006e-05
+      ]
+    },
+    "initial_arm_q_rad": [
+      -0.5421,
+      -1.1222,
+      -1.029,
+      0.8853,
+      -0.3254,
+      -0.4403
+    ],
+    "move_result": {
+      "success": true,
+      "message": "reached",
+      "q_final_rad": [
+        -9.457232077383611e-06,
+        -1.001098751383319,
+        -1.2316246609304302,
+        0.9305331612734391,
+        -1.0755166114106074e-05,
+        9.41124076206506e-05
+      ],
+      "planned_duration_sec": 0.8507564825724344
+    },
+    "convergence": {
+      "q_final_rad": [
+        -0.0,
+        -1.0011,
+        -1.2316,
+        0.9305,
+        -0.0,
+        0.0001
+      ],
+      "max_abs_error_rad": 0.00648,
+      "tolerance_rad": 0.02
+    },
+    "vendor_q_delta_rad": 0.0,
+    "finished_utc": "2026-08-08T21:46:14Z",
+    "passed": true
+  }
+}

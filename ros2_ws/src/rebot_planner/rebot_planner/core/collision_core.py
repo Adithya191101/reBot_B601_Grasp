@@ -233,8 +233,16 @@ class CollisionCore:
         placement = pin.SE3(
             pin.rpy.rpyToMatrix(*(float(v) for v in box.rpy)),
             np.asarray(box.center, dtype=np.float64))
-        go = pin.GeometryObject(f"world/{box.name}", 0,
-                                _fcl.Box(*box.size), placement)
+        geometry = _fcl.Box(*box.size)
+        try:
+            # pinocchio >= 3.2/4 signature: (name, parent_joint, placement,
+            # collision_geometry) -- what ros-jazzy-pinocchio 4.0 binds.
+            go = pin.GeometryObject(f"world/{box.name}", 0, placement,
+                                    geometry)
+        except TypeError:  # Boost.Python.ArgumentError subclasses TypeError
+            # older pip pinocchio: (name, parent_joint, geometry, placement)
+            go = pin.GeometryObject(f"world/{box.name}", 0, geometry,
+                                    placement)
         idx = self.geom_model.addGeometryObject(go)
         self._geom_link.append(f"world/{box.name}")
         exclude = set(box.exclude_links or default_exclude)

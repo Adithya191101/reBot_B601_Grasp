@@ -1,10 +1,25 @@
 # Frozen simulation topic contract (design doc §13.4, decision record).
 # Task code and MoveIt NEVER see raw Isaac topics; only the adapters do.
 # Changing any name here is a recorded decision, not an edit.
+#
+# DECISION 2026-08-08 (M5): the sim side is the ready-made rearm Isaac
+# environment (assets/rearm_isaac_scene/rebot_isaac_ws), adopted on user
+# direction. Its verified closed loop is JointState-in/JointState-out:
+#   * raw states arrive on /isaac_joint_states (was /rebot_sim/joint_states_raw);
+#   * commands are plain JointState position targets on /isaac_joint_commands,
+#     applied to the NAMED joints each physics tick -- there is no Isaac-side
+#     FollowJointTrajectory server (the bridge has no ActionGraph JTC node
+#     headless), and §13.4 anticipated exactly this shape (arm_command:
+#     /rebot_sim/joint_commands).
+# The two frozen FJT names below are therefore served CONTAINER-side by
+# rebot_sim_bridge's sim-JTC shims, which interpolate accepted goals onto
+# joint_command at the sim rate. Adapter-facing names are unchanged; only
+# the adapters and the shims ever see the isaac_* names.
 sim_topics:
-  joint_states_raw: /rebot_sim/joint_states_raw          # Isaac Sim -> joint-state adapter
-  arm_trajectory: /rebot_sim_arm_controller/follow_joint_trajectory  # trajectory adapter -> sim JTC
-  gripper_trajectory: /gripper_controller/follow_joint_trajectory    # gripper adapter -> sim jaw JTC
+  joint_states_raw: /isaac_joint_states                  # Isaac Sim -> joint-state adapter + shims
+  joint_command: /isaac_joint_commands                   # sim-JTC shims -> Isaac Sim (JointState targets)
+  arm_trajectory: /rebot_sim_arm_controller/follow_joint_trajectory  # trajectory adapter -> sim JTC shim
+  gripper_trajectory: /gripper_controller/follow_joint_trajectory    # gripper adapter -> sim jaw JTC shim
   clock: /clock                                          # Isaac Sim is the single owner
 canonical_topics:
   joint_states: /joint_states                            # exactly one publisher per profile

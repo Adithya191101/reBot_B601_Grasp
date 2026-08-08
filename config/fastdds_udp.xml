@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- UDPv4-only FastDDS profile, verbatim from the Isaac Sim 5.1 ROS 2
+     installation guide (docs.isaacsim.omniverse.nvidia.com/5.1.0/
+     installation/install_ros.html).
+
+     WHY (recorded M5 finding, 2026-08-08): with default FastDDS transports,
+     the host-side Isaac bridge and the rebot-jazzy-baseline container
+     DISCOVER each other (ros2 topic list shows every sim topic) but data
+     delivery over the shared-memory transport fails SILENTLY, and every
+     sim-time timer in the container freezes with zero warnings because
+     /clock never arrives.  Observed run-to-run flaky: one run delivered,
+     the next did not.  --ipc host --pid host did NOT fix delivery.  NVIDIA's
+     documented remedy for exactly this topology (Isaac Sim on the host, ROS
+     nodes in Docker with net=host) is this profile via
+     FASTRTPS_DEFAULT_PROFILES_FILE on BOTH sides -- UDP transport instead of
+     shared memory, RMW stays the default rmw_fastrtps_cpp.
+
+     scripts/m5_parity_test.sh exports it for the bridge process and the
+     container (mounted at /work/config/fastdds_udp.xml). -->
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles" >
+    <transport_descriptors>
+        <transport_descriptor>
+            <transport_id>UdpTransport</transport_id>
+            <type>UDPv4</type>
+        </transport_descriptor>
+    </transport_descriptors>
+
+    <participant profile_name="udp_transport_profile" is_default_profile="true">
+        <rtps>
+            <userTransports>
+                <transport_id>UdpTransport</transport_id>
+            </userTransports>
+            <useBuiltinTransports>false</useBuiltinTransports>
+        </rtps>
+    </participant>
+</profiles>
