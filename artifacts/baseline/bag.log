@@ -1,0 +1,11 @@
+stdin is not a terminal device. Keyboard handling disabled.[INFO] [1786218902.742665191] [rosbag2_recorder]: Press SPACE for pausing/resuming
+[INFO] [1786218902.742672449] [rosbag2_recorder]: Event publisher thread: Started
+[INFO] [1786218902.745315955] [rosbag2_recorder]: Starting recording to '/work/artifacts/baseline/m1_dm_pick_place'
+[INFO] [1786218902.746186493] [rosbag2_recorder]: Listening for topics...
+[INFO] [1786218902.746199984] [rosbag2_recorder]: Recording...
+[INFO] [1786218902.746263024] [rosbag2_recorder]: Topics discovery started.
+[INFO] [1786218902.854645356] [rosbag2_recorder]: Subscribed to topic '/tf'
+[INFO] [1786218902.855343610] [rosbag2_recorder]: Subscribed to topic '/tf_static'
+[WARN] [1786218902.964561332] [rosbag2_storage]: Some, but not all, publishers on topic "/display_planned_path" are offering RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL. Falling back to RMW_QOS_POLICY_DURABILITY_VOLATILE as it will connect to all publishers. Previously-published latched messages will not be retrieved.
+[INFO] [1786218902.968674447] [rosbag2_recorder]: Subscribed to topic '/display_planned_path'
+[INFO] [1786218903.968571775] [rosbag2_recorder]: Subscribed to topic '/joint_states'

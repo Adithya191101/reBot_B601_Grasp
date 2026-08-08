@@ -1,0 +1,31 @@
+[INFO] [launch]: All log files can be found below /root/.ros/log/2026-08-08-19-55-05-713982-4ce3700855ef-217
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [pick_place-1]: process started with pid [220]
+[pick_place-1] [INFO] [1786218907.473472997] [pick_place]: current joint state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+[pick_place-1] [INFO] [1786218907.473888100] [pick_place]: close gripper to 0.0000 on ['gripper_joint1', 'gripper_joint2']
+[pick_place-1] [INFO] [1786218908.526604190] [pick_place]: clear stale object 'demo_object'
+[pick_place-1] [ERROR] [1786218908.529079144] [pick_place]: Failed to apply planning scene
+[pick_place-1] [INFO] [1786218908.529604626] [pick_place]: compute pick IK for absolute gripper_tcp pose [0.300, 0.120, 0.060] rpy [0.0000, 0.7854, 0.0000]
+[pick_place-1] [INFO] [1786218908.532674030] [pick_place]: pick IK target: [0.5366, -1.5682, -0.5107, -0.1966, 0.3699, -2.7434]
+[pick_place-1] [INFO] [1786218908.532906659] [pick_place]: compute place IK for absolute gripper_tcp pose [0.300, -0.120, 0.060] rpy [0.0000, 0.7854, 0.0000]
+[pick_place-1] [INFO] [1786218908.535071725] [pick_place]: place IK target: [-0.5366, -1.5682, -0.5107, -0.1967, -0.3699, 2.7434]
+[pick_place-1] [INFO] [1786218908.535274270] [pick_place]: add object 'demo_object' at [0.300, 0.120, 0.060] in base_link
+[pick_place-1] [INFO] [1786218908.536327016] [pick_place]: move to ready
+[pick_place-1] [INFO] [1786218908.659835057] [pick_place]: MoveIt planned joint target
+[pick_place-1] [INFO] [1786218910.445587541] [pick_place]: open gripper to 0.0450 on ['gripper_joint1', 'gripper_joint2']
+[pick_place-1] [INFO] [1786218911.447508193] [pick_place]: allow collisions between 'demo_object' and ['gripper_link', 'gripper_tcp', 'gripper_left', 'gripper_right']
+[pick_place-1] [INFO] [1786218911.450345732] [pick_place]: move to pick
+[pick_place-1] [INFO] [1786218911.582540631] [pick_place]: MoveIt planned joint target
+[pick_place-1] [INFO] [1786218915.375944137] [pick_place]: grasp gripper to 0.0170 on ['gripper_joint1', 'gripper_joint2']
+[pick_place-1] [INFO] [1786218916.377826864] [pick_place]: attach object 'demo_object' to gripper_tcp without changing pose
+[pick_place-1] [INFO] [1786218916.379450322] [pick_place]: move to ready
+[pick_place-1] [INFO] [1786218916.495449956] [pick_place]: MoveIt planned joint target
+[pick_place-1] [INFO] [1786218920.285396676] [pick_place]: move to place
+[pick_place-1] [INFO] [1786218920.436492230] [pick_place]: MoveIt planned joint target
+[pick_place-1] [INFO] [1786218924.224912823] [pick_place]: detach object 'demo_object' at place position with initial orientation
+[pick_place-1] [INFO] [1786218924.226319429] [pick_place]: open gripper to 0.0450 on ['gripper_joint1', 'gripper_joint2']
+[pick_place-1] [INFO] [1786218925.228222261] [pick_place]: forbid collisions between 'demo_object' and ['gripper_link', 'gripper_tcp', 'gripper_left', 'gripper_right']
+[pick_place-1] [INFO] [1786218925.230640515] [pick_place]: move to ready
+[pick_place-1] [INFO] [1786218925.437437061] [pick_place]: MoveIt planned joint target
+[pick_place-1] [INFO] [1786218929.225058415] [pick_place]: pick demo finished
+[INFO] [pick_place-1]: process has finished cleanly [pid 220]

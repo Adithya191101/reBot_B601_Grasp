@@ -56,3 +56,5 @@ artifacts/banana/*
 __pycache__/
 *.pyc
 .venv/
+!artifacts/baseline/
+!artifacts/baseline/**

@@ -74,3 +74,7 @@ consumer (MoveIt, XRDF, USD import, driver-URDF generation) must reference.
 1. `check_urdf` + FK parity + mimic +1.0 + frame-contract tests re-run inside
    the Jazzy container once M0 completes.
 2. Orientation-equivalence sub-check for end_link vs gripper_link.
+
+**end_link alias decision:** the full with_gripper model DOES carry an
+`end_link` child (verified via check_urdf in the Jazzy container) — the
+alias exists; driver end_link ≡ full-model end_link ≡ gripper_link position.
