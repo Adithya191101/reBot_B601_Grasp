@@ -14,7 +14,7 @@ implementation work.
 | CUDA version | 13.0 (driver-reported) |
 | OS | Ubuntu 24.04.4 LTS |
 | Isaac Sim version | 5.1.0.0 (pip install, ~/isaaclab-venv, python 3.11) |
-| Isaac ROS tag | release-4.5 (Jazzy / Ubuntu 24.04) — image digest recorded below once pulled |
+| Isaac ROS tag | release-4.5 (Jazzy / Ubuntu 24.04); dev image `nvcr.io/nvidia/isaac/ros:isaac_ros_89df02a734965ed64c227ef531c09d65-amd64` via isaac-ros CLI — GPU + Jazzy verified inside (2026-08-08) |
 | ROS_DOMAIN_ID | 42 |
 | Single-host or split-host | Single host (see decision) |
 | Docker | 29.x, user in docker group, nvidia-container-toolkit working (GPU passthrough verified) |
