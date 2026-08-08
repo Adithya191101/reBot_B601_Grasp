@@ -1,0 +1,45 @@
+# Cell geometry for the reBot B601-DM work cell (design doc sec. 6.3).
+#
+# Frame: all poses below are in `base_link` == `cell_frame` (identity in
+# sim; on hardware the surveyed cell_frame->base_link static TF applies
+# before these numbers are reused).
+#
+# `obstacles` are collision boxes the planner checks against and REJECTS
+# paths that touch them (no re-routing until cuMotion, M6/M7).
+# `zones` are task metadata (where objects are picked/placed) -- the arm
+# must reach INTO them, so they are never collision objects.
+
+frame: base_link
+
+obstacles:
+  # Work surface: the B601 is mounted ON the board (base plane == tabletop,
+  # banana-demo lesson), so the slab's top face is z=0 and its volume lies
+  # below. Board 600 x 450 mm spanning x 0..0.60, y -0.225..0.225.
+  # base_link/link1 sit bolted on the surface and are excluded from the
+  # world pairs (they never leave it).
+  table:
+    type: box
+    size: [0.60, 0.45, 0.05]
+    center: [0.30, 0.0, -0.025]
+    rpy: [0.0, 0.0, 0.0]
+    exclude_links: [base_link, link1]
+
+  # Parametric gantry crossbar (design doc: span ~0.18-0.22 m, lower edge
+  # adjustable z=0.18-0.25 m; drawn beside the pick zone). Re-survey these
+  # numbers against the physical cell before hardware runs.
+  gantry:
+    type: gantry
+    center_xy: [0.45, 0.10]
+    span_axis: x
+    span_m: 0.20
+    bar_width_m: 0.04
+    bar_height_m: 0.04
+    lower_edge_z_m: 0.20
+
+zones:
+  pick_zone:
+    center_xy: [0.30, 0.14]
+    size_xy: [0.15, 0.15]
+  place_zone:
+    center_xy: [0.30, -0.14]
+    size_xy: [0.14, 0.14]

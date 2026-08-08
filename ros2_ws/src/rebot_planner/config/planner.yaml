@@ -1,0 +1,32 @@
+# Node parameters for the reBot Pinocchio planner (MoveIt replacement).
+# The urdf_path must reference the canonical URDF product of KDR-001
+# (urdf/rebot_b601dm_canonical.urdf); inside the Jazzy container the repo
+# is mounted at /work.
+
+rebot_planner:
+  ros__parameters:
+    urdf_path: /work/urdf/rebot_b601dm_canonical.urdf
+    # Roots that resolve package://rebotarm_bringup mesh URIs; empty ->
+    # derived from urdf_path (repo layout).
+    package_dirs: [""]
+    # Empty -> <share>/rebot_planner/config/cell_geometry.yaml.
+    cell_geometry: ""
+    ee_frame: gripper_link
+    # KDR-001 canonical TCP (gripper_tcp), metres in gripper_link.
+    tcp_offset_m: [-0.041763, 0.000008, 0.003427]
+    joint_states_topic: /joint_states
+    controller_action: /rebot_controller/follow_joint_trajectory
+    move_action: /rebot_planner/move_to_pose
+    # Fraction of the canonical 5,5,5,3,3,3 rad/s limits used for timing.
+    velocity_safety_factor: 0.5
+    min_segment_sec: 0.1
+    # Cartesian translation waypoints per move (banana-demo default).
+    steps: 7
+    branch_jump_rad: 0.7
+    shoulder_jump_rad: 0.6
+    max_rot_step_rad: 0.35
+    collision_checking: true
+    collision_max_step_rad: 0.05
+    joint_state_stale_sec: 1.0
+    goal_connect_timeout_sec: 5.0
+    result_timeout_margin_sec: 3.0

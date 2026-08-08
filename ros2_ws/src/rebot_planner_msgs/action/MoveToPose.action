@@ -1,0 +1,24 @@
+# Move the canonical TCP (gripper_tcp, KDR-001) to a pose in base_link.
+# The planner plans a Cartesian-linear waypoint trajectory (rotate-then-
+# translate), collision-checks it against the cell geometry, and executes
+# it through /rebot_controller/follow_joint_trajectory.
+#
+# target.header.frame_id MUST be "base_link" (empty is accepted as
+# base_link with a warning). Any other frame is rejected: the planner does
+# not consume TF.
+geometry_msgs/PoseStamped target
+# Per-goal override of the velocity_safety_factor parameter; 0.0 (default)
+# uses the node parameter. Valid range (0, 1].
+float64 velocity_safety_factor 0.0
+---
+bool success
+string message
+# Planned final arm configuration, canonical joint order (rad).
+float64[] q_final
+# Duration of the planned trajectory (s).
+float64 planned_duration_sec
+---
+# planning | collision_check | executing
+string stage
+# 0..1 fraction of the planned trajectory duration elapsed (executing).
+float64 progress

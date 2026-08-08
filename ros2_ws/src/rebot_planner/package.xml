@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rebot_planner</name>
+  <version>0.1.0</version>
+  <description>
+    Pinocchio-based IK/planning for the reBot B601-DM, replacing MoveIt:
+    step-clamped joint-limit-projected DLS IK and Cartesian-linear waypoint
+    planning (proven in the Isaac Sim grasping track), self- and world-box
+    collision REJECTION (no re-routing until cuMotion), and a MoveToPose
+    action node executing through /rebot_controller/follow_joint_trajectory.
+    Pure-Python cores under rebot_planner/core are rclpy-free and
+    unit-tested without ROS.
+  </description>
+  <maintainer email="nirty.4u@gmail.com">Adithya</maintainer>
+  <license>Apache-2.0</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+  <exec_depend>rebot_planner_msgs</exec_depend>
+  <exec_depend>pinocchio</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

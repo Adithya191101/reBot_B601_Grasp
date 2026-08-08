@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-jazzy-gripper-controllers \
     ros-jazzy-joint-state-publisher \
     ros-jazzy-joint-state-publisher-gui \
+    ros-jazzy-pinocchio \
     ros-jazzy-xacro \
     ros-jazzy-rosbag2-storage-mcap \
     ros-jazzy-tf-transformations \
