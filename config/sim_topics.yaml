@@ -21,6 +21,28 @@ sim_topics:
   arm_trajectory: /rebot_sim_arm_controller/follow_joint_trajectory  # trajectory adapter -> sim JTC shim
   gripper_trajectory: /gripper_controller/follow_joint_trajectory    # gripper adapter -> sim jaw JTC shim
   clock: /clock                                          # Isaac Sim is the single owner
+# DECISION 2026-08-09 (M8, docs/DDR-002-camera-architecture.md PROVISIONAL):
+# fixed OVERHEAD RGB-D camera first (wrist D405 deferred to perception
+# milestones). Published by the bridge's --m8-scene camera graph
+# (ROS2CameraHelper/ROS2CameraInfoHelper on one render product, 640x480
+# @ ~15 Hz). "aligned_depth_to_color" naming matches the real RealSense
+# driver (align_depth.enable) so sim->real is a launch change only.
+# TF: base_link -> overhead_camera_color_optical_frame on /tf_static
+# (bridge ROS2PublishRawTransformTree; stands in for the doc-15.2
+# hand-eye result on hardware).
+camera:
+  overhead:
+    color: /overhead_camera/color/image_raw
+    color_info: /overhead_camera/color/camera_info
+    depth: /overhead_camera/aligned_depth_to_color/image_raw       # 32FC1 metres
+    depth_info: /overhead_camera/aligned_depth_to_color/camera_info
+    optical_frame: overhead_camera_color_optical_frame
+# M8 mapping intermediates (consumed only inside the segmenter->nvblox->
+# cuMotion chain; task code never subscribes these):
+mapping:
+  robot_mask: /cumotion/camera_1/robot_mask              # 32FC1 binary: 1=world px, 0=robot px (evidence)
+  world_depth: /cumotion/camera_1/world_depth            # robot-masked depth -> nvblox camera_0/depth/image
+  esdf_service: /nvblox_node/get_esdf_and_gradient       # nvblox -> cuMotion world (per-goal update_esdf!)
 canonical_topics:
   joint_states: /joint_states                            # exactly one publisher per profile
   trajectory_action: /rebot_controller/follow_joint_trajectory

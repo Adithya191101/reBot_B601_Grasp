@@ -62,3 +62,5 @@ __pycache__/
 !artifacts/m5/parity.json
 !artifacts/m7/
 !artifacts/m7/gantry_avoidance.json
+!artifacts/m8/
+!artifacts/m8/mapping_acceptance.json

@@ -1,0 +1,245 @@
+{
+  "milestone": "M8",
+  "gate": "robot segmentation + nvblox ESDF mapping feeds cuMotion (design doc 14-15; acceptance test 15.4): >= 5 arm configs with the robot body ABSENT from the map and the gantry PRESENT, stale map clears after the gantry is removed (and rebuilds on return), and cuMotion visibly re-routes around the MAPPED (not statically declared) gantry with a cleared-map contrast plan",
+  "generated_utc": "2026-08-09T17:34:12Z",
+  "passed": true,
+  "failures": [],
+  "n_map_configs": 5,
+  "n_map_passed": 5,
+  "map_configs": [
+    {
+      "index": 1,
+      "tcp": [
+        0.5063,
+        -0.1912,
+        0.3899
+      ],
+      "move_ok": true,
+      "robot_occupied_voxels": 0,
+      "gantry_occupied_voxels": 273,
+      "n_occupied": 7608,
+      "mask_px": 287407,
+      "masked_out_px": 19793,
+      "robot_absent": true,
+      "gantry_present": true,
+      "segmentation_active": true,
+      "passed": true
+    },
+    {
+      "index": 2,
+      "tcp": [
+        0.4655,
+        -0.1873,
+        0.2667
+      ],
+      "move_ok": true,
+      "robot_occupied_voxels": 0,
+      "gantry_occupied_voxels": 273,
+      "n_occupied": 7612,
+      "mask_px": 288167,
+      "masked_out_px": 19033,
+      "robot_absent": true,
+      "gantry_present": true,
+      "segmentation_active": true,
+      "passed": true
+    },
+    {
+      "index": 3,
+      "tcp": [
+        0.2321,
+        0.2455,
+        0.2421
+      ],
+      "move_ok": true,
+      "robot_occupied_voxels": 0,
+      "gantry_occupied_voxels": 273,
+      "n_occupied": 7614,
+      "mask_px": 286781,
+      "masked_out_px": 20419,
+      "robot_absent": true,
+      "gantry_present": true,
+      "segmentation_active": true,
+      "passed": true
+    },
+    {
+      "index": 4,
+      "tcp": [
+        0.1575,
+        0.079,
+        0.4019
+      ],
+      "move_ok": true,
+      "robot_occupied_voxels": 0,
+      "gantry_occupied_voxels": 273,
+      "n_occupied": 7614,
+      "mask_px": 290370,
+      "masked_out_px": 16830,
+      "robot_absent": true,
+      "gantry_present": true,
+      "segmentation_active": true,
+      "passed": true
+    },
+    {
+      "index": 5,
+      "tcp": [
+        0.5479,
+        -0.2683,
+        0.1608
+      ],
+      "move_ok": true,
+      "robot_occupied_voxels": 0,
+      "gantry_occupied_voxels": 273,
+      "n_occupied": 7614,
+      "mask_px": 286586,
+      "masked_out_px": 20614,
+      "robot_absent": true,
+      "gantry_present": true,
+      "segmentation_active": true,
+      "passed": true
+    }
+  ],
+  "phase_d1_mapped_gantry": {
+    "planned": true,
+    "executed": true,
+    "converged": true,
+    "tracking_err_rad": 0.01018,
+    "planning_time_s": 0.2035,
+    "duration_s": 6.7,
+    "n_points": 68,
+    "collision_free": true,
+    "max_joint_dev_rad": 0.582,
+    "max_tcp_dev_m": 0.2701,
+    "min_gantry_clearance_m": 0.0346,
+    "straight_line_actual": {
+      "n_configs": 74,
+      "n_gantry_hits": 19,
+      "hit_span_rad": 0.3754,
+      "clean_without_gantry": true,
+      "colliding_pairs": [
+        [
+          "gripper_left_0",
+          "world/gantry"
+        ],
+        [
+          "gripper_link_0",
+          "world/gantry"
+        ],
+        [
+          "gripper_right_0",
+          "world/gantry"
+        ],
+        [
+          "link5_0",
+          "world/gantry"
+        ],
+        [
+          "link6_0",
+          "world/gantry"
+        ]
+      ],
+      "hits_only_gantry": true
+    },
+    "map_gantry_voxels_at_plan": 273,
+    "deviation_measurable": true,
+    "passed": true
+  },
+  "phase_c_stale_clear": {
+    "ok": true,
+    "elapsed_s": 3.1,
+    "history": [
+      {
+        "t_s": 0.0,
+        "gantry_occupied_voxels": 273
+      },
+      {
+        "t_s": 3.1,
+        "gantry_occupied_voxels": 0
+      }
+    ]
+  },
+  "phase_d2_cleared_contrast": {
+    "planned": true,
+    "executed": true,
+    "converged": true,
+    "tracking_err_rad": 0.00848,
+    "planning_time_s": 0.2296,
+    "duration_s": 5.4,
+    "n_points": 55,
+    "collision_free": true,
+    "max_joint_dev_rad": 0.0261,
+    "max_tcp_dev_m": 0.0104,
+    "crosses_gantry_volume": true,
+    "n_configs_inside_gantry": 10,
+    "map_gantry_voxels_at_plan": 0,
+    "dev_ratio_d1_over_d2": 25.97,
+    "near_straight": true,
+    "passed": true
+  },
+  "phase_c2_rebuild": {
+    "ok": true,
+    "elapsed_s": 3.0,
+    "history": [
+      {
+        "t_s": 0.0,
+        "gantry_occupied_voxels": 0
+      },
+      {
+        "t_s": 3.0,
+        "gantry_occupied_voxels": 273
+      }
+    ]
+  },
+  "config_rejections": [],
+  "gates": {
+    "robot_clearance_margin_m": 0.01,
+    "gantry_min_occupied_voxels": 40,
+    "gantry_max_stale_voxels": 5,
+    "map_clear_timeout_s": 90.0,
+    "map_present_timeout_s": 90.0,
+    "dev_min_tcp_m": 0.02,
+    "near_straight_tcp_m": 0.05,
+    "contrast_ratio_min": 2.0
+  },
+  "nvblox": {
+    "voxel_size_m": 0.01,
+    "workspace": {
+      "min": [
+        -0.1,
+        -0.35,
+        -0.05
+      ],
+      "max": [
+        0.65,
+        0.35,
+        0.65
+      ]
+    },
+    "esdf_mode": "3d",
+    "global_frame": "base_link",
+    "depth_source": "robot-masked world_depth (isaac_ros_cumotion_robot_segmenter)"
+  },
+  "gpu_vram": {
+    "baseline_before_stack_mib": 20,
+    "peak_during_run_mib": 3524,
+    "stack_delta_mib": 3504,
+    "samples": 65,
+    "note": "nvidia-smi memory.used, whole GPU; stack = Isaac Sim bridge (+overhead RTX camera) + adapter container + segmenter/nvblox/cuMotion container"
+  },
+  "evidence_pngs": [
+    "config01_mask.png",
+    "config01_raw_depth.png",
+    "config01_world_depth.png",
+    "config02_mask.png",
+    "config02_raw_depth.png",
+    "config02_world_depth.png",
+    "config03_mask.png",
+    "config03_raw_depth.png",
+    "config03_world_depth.png",
+    "config04_mask.png",
+    "config04_raw_depth.png",
+    "config04_world_depth.png",
+    "config05_mask.png",
+    "config05_raw_depth.png",
+    "config05_world_depth.png"
+  ]
+}

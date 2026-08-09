@@ -65,6 +65,33 @@ no cameras, no /tf, no soup can, no cosmetic environment -- smallest VRAM
 footprint (16 GB is the binding constraint, DDR-001 stage 1 must be
 measured lean).
 
+M8 EXTENSION (``--m8-scene``, default OFF so M5/M6/M7 behave bit-identically):
+per docs/DDR-002-camera-architecture.md (PROVISIONAL) a FIXED OVERHEAD
+RGB-D camera + the visible cell geometry are added for the robot-
+segmentation + nvblox mapping milestone:
+
+* visible cell geometry (VISUAL ONLY, no colliders -- cuMotion owns
+  avoidance; a collider could deflect the arm in a failed plan): the
+  cell_geometry.yaml table slab at true z<=0, the gantry crossbar box,
+  and a large floor slab well below the nvblox workspace so every
+  downward depth ray terminates (clean space-carving);
+* an overhead camera at OVERHEAD_CAM_EYE looking straight down, authored
+  as pick_scene.py's wrist-camera construction: parent Xform
+  ``overhead_camera_color_optical_frame`` in ROS optical convention
+  (+Z view), child Camera prim with the 180-deg X flip (identity world
+  orientation = straight down per the topdown-camera memory note);
+* RGB + depth + camera_info via IsaacCreateRenderProduct +
+  ROS2CameraHelper/ROS2CameraInfoHelper (the supported bridge path --
+  the raw ``distance_to_image_plane`` annotator HANGS in headless
+  snapshot contexts, recorded repo memory), throttled by frameSkipCount;
+* TF ``base_link -> overhead_camera_color_optical_frame`` via
+  ROS2PublishRawTransformTree on /tf_static (staticPublisher), so the
+  robot segmenter and nvblox can locate the depth stream;
+* a polled scene-command file (``--scene-cmd-file``, JSON
+  ``{"gantry_visible": bool}``) toggling the gantry prim's visibility --
+  the mapping acceptance test removes/restores the REAL obstacle and
+  watches the ESDF clear/rebuild (doc 15.4 stale-map criterion).
+
 rclpy is NEVER imported here (repo process rule): the OmniGraph nodes
 publish/subscribe through the bridge's bundled C++ Jazzy libraries, which is
 why no system ROS needs to be sourced on the host.
@@ -117,6 +144,20 @@ _ap.add_argument("--no-realtime", action="store_true",
                       "in wall terms -- debug only)")
 _ap.add_argument("--ready-file", default="",
                  help="write a small JSON marker here once the bridge serves")
+_ap.add_argument("--m8-scene", action="store_true",
+                 help="M8: add the visible cell geometry (table/gantry/floor), "
+                      "the fixed overhead RGB-D camera + camera_info + "
+                      "/tf_static, and the scene-command file poller "
+                      "(docs/DDR-002-camera-architecture.md)")
+_ap.add_argument("--scene-cmd-file",
+                 default=str(REPO_ROOT / "artifacts" / "m8" /
+                             "scene_cmd.json"),
+                 help="M8 scene-command JSON polled each second "
+                      "({\"gantry_visible\": bool}); the acceptance runner "
+                      "writes it through the shared /work mount")
+_ap.add_argument("--cam-skip", type=int, default=3,
+                 help="frameSkipCount for the camera helpers (3 -> 15 Hz "
+                      "publish at the 60 FPS render rate)")
 _args, _unknown = _ap.parse_known_args()
 
 # ---------------------------------------------------------------------------
@@ -151,6 +192,39 @@ JAW_JOINTS = ["gripper_joint1", "gripper_joint2"]
 JAW_OPEN_M = 0.0715
 PHYSICS_HZ = 60.0  # matches the USD's PhysicsScene timeStepsPerSecond
 
+# --- M8 overhead camera + cell geometry (config/sim_topics.yaml m8 block,
+# docs/DDR-002-camera-architecture.md).  All poses in base_link == world
+# (the robot root is fixed at the origin).
+CAM_OPTICAL_PRIM = "/World/overhead_camera_color_optical_frame"
+CAM_PRIM = CAM_OPTICAL_PRIM + "/rgbd_camera"
+CAM_FRAME_ID = "overhead_camera_color_optical_frame"
+#: Above the workspace centre (x span -0.10..0.65), OUTSIDE the nvblox
+#: workspace box (z max 0.65) so the camera body can never be mapped.
+#: At 1.10 m with the 67x53 deg FOV below, the z=0 footprint is
+#: x in [-0.45, 1.00], y in [-0.55, 0.55]: the whole mapped cell is seen.
+CAM_EYE = (0.275, 0.0, 1.10)
+CAM_W, CAM_H = 640, 480
+CAM_FOCAL_MM = 18.15          # ~67 deg HFOV on a 24 mm aperture (rearm value)
+CAM_APERTURE_MM = 24.0
+TOPIC_CAM_RGB = "/overhead_camera/color/image_raw"
+TOPIC_CAM_RGB_INFO = "/overhead_camera/color/camera_info"
+TOPIC_CAM_DEPTH = "/overhead_camera/aligned_depth_to_color/image_raw"
+TOPIC_CAM_DEPTH_INFO = "/overhead_camera/aligned_depth_to_color/camera_info"
+
+#: Visible cell geometry, numerically identical to config/cell_geometry.yaml
+#: (table slab; gantry via collision_core's _gantry_box conversion:
+#: span x 0.20 m, bar 0.04x0.04 m, lower edge z=0.20 -> box centre z=0.22).
+M8_TABLE = {"center": (0.30, 0.0, -0.025), "size": (0.60, 0.45, 0.05),
+            "rgb": (0.42, 0.36, 0.30)}
+M8_GANTRY = {"center": (0.45, 0.10, 0.22), "size": (0.20, 0.04, 0.04),
+             "rgb": (0.85, 0.45, 0.10)}
+#: Floor slab far below the nvblox workspace floor (z min -0.05) so every
+#: downward depth ray terminates on real geometry -- nvblox then carves
+#: free space cleanly instead of ignoring no-hit pixels.
+M8_FLOOR = {"center": (0.0, 0.0, -0.21), "size": (4.0, 4.0, 0.02),
+            "rgb": (0.18, 0.18, 0.20)}
+GANTRY_PRIM = "/World/m8_scene/gantry"
+
 # Hermetic Kit flags (pick_scene.py pattern): extensions are cached locally,
 # remote registries are only latency.
 sys.argv.extend([
@@ -184,7 +258,7 @@ import usdrt.Sdf  # noqa: E402
 from isaacsim.core.api import SimulationContext  # noqa: E402
 from isaacsim.core.utils.extensions import enable_extension  # noqa: E402
 from isaacsim.core.utils.stage import add_reference_to_stage  # noqa: E402
-from pxr import Usd, UsdPhysics  # noqa: E402
+from pxr import Gf, Usd, UsdGeom, UsdLux, UsdPhysics  # noqa: E402
 
 enable_extension("isaacsim.ros2.bridge")
 simulation_app.update()
@@ -264,6 +338,221 @@ def build_action_graph(articulation_root: str) -> None:
     )
 
 
+def _m8_box(stage: Usd.Stage, path: str, spec: dict) -> None:
+    """A colored VISUAL-ONLY box (pick_scene.py's _box, collision=False).
+
+    No CollisionAPI on purpose: obstacle avoidance is cuMotion's job via
+    the ESDF map; a PhysX collider here could deflect the arm on a failed
+    plan and corrupt tracking-convergence verdicts.
+    """
+    cube = UsdGeom.Cube.Define(stage, path)
+    cube.CreateSizeAttr(1.0)
+    cube.CreateDisplayColorAttr([Gf.Vec3f(*spec["rgb"])])
+    xf = UsdGeom.Xformable(cube)
+    xf.ClearXformOpOrder()
+    xf.AddTranslateOp().Set(Gf.Vec3d(*spec["center"]))
+    xf.AddScaleOp().Set(Gf.Vec3f(*spec["size"]))
+
+
+def build_m8_scene(stage: Usd.Stage) -> None:
+    """Visible cell geometry + lights + the overhead camera prim pair.
+
+    Camera construction is the wrist-camera pattern from the rearm
+    pick_scene.py (its stated proven decision): a parent Xform authored in
+    the ROS OPTICAL convention carries the frame the images/TF advertise,
+    and the child Camera prim applies the 180-deg X flip so the USD camera
+    (which views along its local -Z) looks along the parent's +Z.  For a
+    straight-down view the child's WORLD orientation is then the identity
+    quaternion -- the exact topdown-camera convention recorded in memory.
+    """
+    _m8_box(stage, "/World/m8_scene/floor", M8_FLOOR)
+    _m8_box(stage, "/World/m8_scene/table", M8_TABLE)
+    _m8_box(stage, GANTRY_PRIM, M8_GANTRY)
+
+    # Lights (RGB stream only; depth is geometric): dim dome + distant key,
+    # the rearm exposure recipe (a lone bright dome over-exposes).
+    dome = UsdLux.DomeLight.Define(stage, "/World/m8_scene/dome_light")
+    dome.CreateIntensityAttr(150.0)
+    key = UsdLux.DistantLight.Define(stage, "/World/m8_scene/key_light")
+    key.CreateIntensityAttr(1500.0)
+    kxf = UsdGeom.Xformable(key)
+    kxf.ClearXformOpOrder()
+    kxf.AddRotateXYZOp().Set(Gf.Vec3f(-45.0, 20.0, 0.0))
+
+    # Optical-frame Xform: x=+X world, y=-Y, z=-Z (view straight down)
+    # == 180 deg about X.
+    opt = UsdGeom.Xform.Define(stage, CAM_OPTICAL_PRIM)
+    oxf = UsdGeom.Xformable(opt)
+    oxf.ClearXformOpOrder()
+    oxf.AddTranslateOp().Set(Gf.Vec3d(*CAM_EYE))
+    oxf.AddRotateXYZOp().Set(Gf.Vec3f(180.0, 0.0, 0.0))
+
+    cam = UsdGeom.Camera.Define(stage, CAM_PRIM)
+    cam.CreateFocalLengthAttr(CAM_FOCAL_MM)
+    cam.CreateHorizontalApertureAttr(CAM_APERTURE_MM)
+    cam.CreateVerticalApertureAttr(CAM_APERTURE_MM * CAM_H / CAM_W)
+    cam.CreateClippingRangeAttr(Gf.Vec2f(0.05, 8.0))
+    cxf = UsdGeom.Xformable(cam)
+    cxf.ClearXformOpOrder()
+    cxf.AddRotateXYZOp().Set(Gf.Vec3f(180.0, 0.0, 0.0))  # optical -> USD cam
+    print("M8 SCENE: table/gantry/floor + overhead cam at %s (world "
+          "orientation identity, straight down)" % (CAM_EYE,), flush=True)
+
+
+def build_m8_camera_graph() -> None:
+    """RGB + depth + 2x camera_info publishers on the overhead camera.
+
+    Port of pick_scene.py's build_camera_graph (proven headless pattern):
+    one IsaacCreateRenderProduct on the camera prim feeds
+    ROS2CameraHelper (rgb), ROS2CameraHelper (depth ==
+    DistanceToImagePlane, the range image the robot segmenter expects)
+    and ROS2CameraInfoHelper nodes; a push/on-demand graph evaluated once
+    so the SDG-pipeline publishers exist before the main loop steps.
+    frameSkipCount throttles all four helpers identically so depth and
+    camera_info stay stamp-synchronized for the segmenter's pairing.
+    """
+    skip = max(0, int(_args.cam_skip))
+    keys = og.Controller.Keys
+    (graph, _, _, _) = og.Controller.edit(
+        {
+            "graph_path": "/OverheadCamGraph",
+            "evaluator_name": "push",
+            "pipeline_stage":
+                og.GraphPipelineStage.GRAPH_PIPELINE_STAGE_ONDEMAND,
+        },
+        {
+            keys.CREATE_NODES: [
+                ("OnTick", "omni.graph.action.OnTick"),
+                ("RP", "isaacsim.core.nodes.IsaacCreateRenderProduct"),
+                ("Rgb", "isaacsim.ros2.bridge.ROS2CameraHelper"),
+                ("InfoColor", "isaacsim.ros2.bridge.ROS2CameraInfoHelper"),
+                ("InfoDepth", "isaacsim.ros2.bridge.ROS2CameraInfoHelper"),
+                ("Depth", "isaacsim.ros2.bridge.ROS2CameraHelper"),
+            ],
+            keys.SET_VALUES: [
+                ("RP.inputs:cameraPrim", [usdrt.Sdf.Path(CAM_PRIM)]),
+                ("RP.inputs:width", CAM_W),
+                ("RP.inputs:height", CAM_H),
+                ("Rgb.inputs:frameId", CAM_FRAME_ID),
+                ("Rgb.inputs:topicName", TOPIC_CAM_RGB),
+                ("Rgb.inputs:type", "rgb"),
+                ("Rgb.inputs:frameSkipCount", skip),
+                ("InfoColor.inputs:frameId", CAM_FRAME_ID),
+                ("InfoColor.inputs:topicName", TOPIC_CAM_RGB_INFO),
+                ("InfoColor.inputs:frameSkipCount", skip),
+                ("InfoDepth.inputs:frameId", CAM_FRAME_ID),
+                ("InfoDepth.inputs:topicName", TOPIC_CAM_DEPTH_INFO),
+                ("InfoDepth.inputs:frameSkipCount", skip),
+                ("Depth.inputs:frameId", CAM_FRAME_ID),
+                ("Depth.inputs:topicName", TOPIC_CAM_DEPTH),
+                ("Depth.inputs:type", "depth"),
+                ("Depth.inputs:frameSkipCount", skip),
+            ],
+            keys.CONNECT: [
+                ("OnTick.outputs:tick", "RP.inputs:execIn"),
+                ("RP.outputs:execOut", "Rgb.inputs:execIn"),
+                ("RP.outputs:execOut", "InfoColor.inputs:execIn"),
+                ("RP.outputs:execOut", "InfoDepth.inputs:execIn"),
+                ("RP.outputs:execOut", "Depth.inputs:execIn"),
+                ("RP.outputs:renderProductPath",
+                 "Rgb.inputs:renderProductPath"),
+                ("RP.outputs:renderProductPath",
+                 "InfoColor.inputs:renderProductPath"),
+                ("RP.outputs:renderProductPath",
+                 "InfoDepth.inputs:renderProductPath"),
+                ("RP.outputs:renderProductPath",
+                 "Depth.inputs:renderProductPath"),
+            ],
+        },
+    )
+    og.Controller.evaluate_sync(graph)
+    print("M8 CAMERA GRAPH: %s {rgb,depth,2x info} @60/%d Hz, frame %s"
+          % ("/overhead_camera", skip + 1, CAM_FRAME_ID), flush=True)
+
+
+def build_m8_tf_graph() -> None:
+    """Static TF base_link -> overhead_camera_color_optical_frame.
+
+    ROS2PublishRawTransformTree with staticPublisher=true on /tf_static
+    (transient-local, the tf2 static convention).  base_link is at the
+    world origin with identity orientation (fixed-base import), so the
+    edge equals the optical Xform's world pose: translation CAM_EYE,
+    rotation 180 deg about X (IJKR = [1, 0, 0, 0]).  This single edge is
+    the whole TF need of the M8 consumers: the robot segmenter looks up
+    depth-frame <-> robot_base_frame and nvblox looks up
+    global_frame(base_link) <-> depth frame; neither needs per-link TF
+    (the segmenter poses the robot from /joint_states via cuRobo FK).
+    """
+    og.Controller.edit(
+        {"graph_path": "/OverheadTfGraph", "evaluator_name": "execution"},
+        {
+            og.Controller.Keys.CREATE_NODES: [
+                ("OnPlaybackTick", "omni.graph.action.OnPlaybackTick"),
+                ("ReadSimTime",
+                 "isaacsim.core.nodes.IsaacReadSimulationTime"),
+                ("CamTf",
+                 "isaacsim.ros2.bridge.ROS2PublishRawTransformTree"),
+            ],
+            og.Controller.Keys.SET_VALUES: [
+                ("CamTf.inputs:topicName", "tf_static"),
+                ("CamTf.inputs:staticPublisher", True),
+                ("CamTf.inputs:parentFrameId", "base_link"),
+                ("CamTf.inputs:childFrameId", CAM_FRAME_ID),
+                ("CamTf.inputs:translation", list(CAM_EYE)),
+                # quatd IJKR layout: 180 deg about X (x=1, w=0) == the
+                # optical Xform authored above.
+                ("CamTf.inputs:rotation", [1.0, 0.0, 0.0, 0.0]),
+            ],
+            og.Controller.Keys.CONNECT: [
+                ("OnPlaybackTick.outputs:tick", "CamTf.inputs:execIn"),
+                ("ReadSimTime.outputs:simulationTime",
+                 "CamTf.inputs:timeStamp"),
+            ],
+        },
+    )
+
+
+class SceneCommandPoller:
+    """Polls the scene-command JSON and applies gantry visibility.
+
+    File-based on purpose: rclpy is banned in this process (repo rule)
+    and the acceptance runner in the container shares the repo mount, so
+    a JSON file is the simplest reliable cross-container channel.
+    """
+
+    def __init__(self, stage: Usd.Stage, path: str) -> None:
+        self.stage = stage
+        self.path = Path(path)
+        self.mtime = -1.0
+        self.gantry_visible = True
+
+    def poll(self) -> None:
+        try:
+            mtime = self.path.stat().st_mtime
+        except OSError:
+            return
+        if mtime == self.mtime:
+            return
+        self.mtime = mtime
+        try:
+            cmd = json.loads(self.path.read_text())
+        except (OSError, ValueError) as exc:
+            print("M8 SCENE CMD: unreadable %s (%s)" % (self.path, exc),
+                  flush=True)
+            return
+        want = bool(cmd.get("gantry_visible", True))
+        if want == self.gantry_visible:
+            return
+        prim = self.stage.GetPrimAtPath(GANTRY_PRIM)
+        if not prim.IsValid():
+            print("M8 SCENE CMD: gantry prim missing", flush=True)
+            return
+        img = UsdGeom.Imageable(prim)
+        (img.MakeVisible() if want else img.MakeInvisible())
+        self.gantry_visible = want
+        print("M8 SCENE CMD: gantry_visible=%s" % want, flush=True)
+
+
 def main() -> int:
     add_reference_to_stage(usd_path=USD_PATH, prim_path=ROBOT_PRIM)
     stage = omni.usd.get_context().get_stage()
@@ -275,6 +564,12 @@ def main() -> int:
     articulation_root = find_articulation_root(stage)
     print("articulation root: %s" % articulation_root, flush=True)
     build_action_graph(articulation_root)
+    scene_poller = None
+    if _args.m8_scene:
+        build_m8_scene(stage)
+        build_m8_tf_graph()
+        build_m8_camera_graph()
+        scene_poller = SceneCommandPoller(stage, _args.scene_cmd_file)
     simulation_app.update()
 
     sim.initialize_physics()
@@ -342,8 +637,17 @@ def main() -> int:
     print("  start q:   %s" % {n: round(float(v), 4)
                                for n, v in zip(dof_names, settled)}, flush=True)
     print("BRIDGE READY", flush=True)
+    if _args.m8_scene:
+        print("  PUBLISH   %-24s rgb (60/%d Hz)"
+              % (TOPIC_CAM_RGB, _args.cam_skip + 1), flush=True)
+        print("  PUBLISH   %-24s depth 32FC1" % TOPIC_CAM_DEPTH, flush=True)
+        print("  PUBLISH   %s + %s" % (TOPIC_CAM_RGB_INFO,
+                                       TOPIC_CAM_DEPTH_INFO), flush=True)
+        print("  PUBLISH   /tf_static base_link->%s" % CAM_FRAME_ID,
+              flush=True)
+        print("  SCENE CMD %s" % _args.scene_cmd_file, flush=True)
     if _args.ready_file:
-        Path(_args.ready_file).write_text(json.dumps({
+        ready = {
             "usd": USD_PATH,
             "articulation_root": articulation_root,
             "dof_names": dof_names,
@@ -351,7 +655,19 @@ def main() -> int:
             "topics": {"clock": TOPIC_CLOCK,
                        "joint_states": TOPIC_JOINT_STATES,
                        "joint_commands": TOPIC_JOINT_COMMANDS},
-        }, indent=2) + "\n")
+        }
+        if _args.m8_scene:
+            ready["m8_scene"] = {
+                "camera_frame": CAM_FRAME_ID,
+                "camera_eye": list(CAM_EYE),
+                "camera_resolution": [CAM_W, CAM_H],
+                "topics": {"rgb": TOPIC_CAM_RGB, "depth": TOPIC_CAM_DEPTH,
+                           "rgb_info": TOPIC_CAM_RGB_INFO,
+                           "depth_info": TOPIC_CAM_DEPTH_INFO},
+                "scene_cmd_file": str(_args.scene_cmd_file),
+                "gantry": M8_GANTRY, "table": M8_TABLE,
+            }
+        Path(_args.ready_file).write_text(json.dumps(ready, indent=2) + "\n")
 
     # Main loop: rendered steps only (OnPlaybackTick fires from the render
     # loop).  The Kit rate limiter (argv flags above) locks stepping to
@@ -361,8 +677,12 @@ def main() -> int:
     sim_start = float(sim.current_time)
     deadline = wall_start + _args.duration
     next_report = wall_start + 30.0
+    frame = 0
     while simulation_app.is_running() and time.monotonic() < deadline:
         sim.step(render=True)
+        frame += 1
+        if scene_poller is not None and frame % 60 == 0:
+            scene_poller.poll()
         if time.monotonic() >= next_report:
             q_now = np.asarray(arm.get_joint_positions(), dtype=float)
             wall_elapsed = time.monotonic() - wall_start
