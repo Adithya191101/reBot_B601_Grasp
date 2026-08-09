@@ -1,0 +1,764 @@
+{
+  "milestone": "M7",
+  "gate": "static gantry collision avoidance -- visible re-routing (design doc sec. 21 M7): 10 pose pairs whose straight joint path provably hits ONLY the gantry all plan collision-free, execute, converge and measurably deviate; 3 gantry-removed re-runs are near-straight",
+  "generated_utc": "2026-08-09T00:51:20Z",
+  "passed": true,
+  "n_trials": 10,
+  "n_passed": 10,
+  "n_contrast": 3,
+  "n_contrast_passed": 3,
+  "n_pairs_rejected": 0,
+  "rejected_pairs": [],
+  "criteria": {
+    "planned": "cumotion/motion_plan plan_cspace success (joint goal = sampled pair endpoint)",
+    "collision_free": "mesh recheck (pinocchio/hppfcl, full SRDF active pairs, true z=0 table + gantry), <= 0.05 rad interpolation, jaws at sim state 0.0715 m open",
+    "executed": "FJT SUCCESSFUL through adapter+shim",
+    "converged": "tracking error <= 0.02 rad within 5 s (M5 gate)",
+    "goal_reached": "last trajectory point within 0.01 rad/joint of the pair's qB",
+    "straight_line": "chord (ref AND actual endpoints) collides with the gantry and with NOTHING else, mesh model, <= 0.02 rad steps",
+    "deviation_measurable": "max TCP deviation from the straight chord >= 0.02 m",
+    "gantry_clearance": "min mesh distance to the gantry > 0 over the whole planned path",
+    "contrast_near_straight": "gantry-removed max TCP deviation <= 0.05 m AND >= 2.0x smaller than the same pair with the gantry"
+  },
+  "planner_decisions": {
+    "planning_backend": "isaac_ros_cumotion 4.5 STANDALONE MotionPlan action server, plan_cspace joint goals; MoveIt not used (M6 decision, unchanged)",
+    "cspace_goal_rationale": "the M7 claim is about the straight joint path between two known configurations; a pose goal would let cuMotion's IK choose a different branch and detach the executed motion from the chord proof",
+    "static_scene": "table (10 mm-dropped, M6/XRDF convention) + gantry embedded per goal; contrast trials embed the same world MINUS the gantry"
+  },
+  "gpu_vram": {
+    "baseline_before_stack_mib": 20,
+    "peak_during_run_mib": 2557,
+    "stack_delta_mib": 2537,
+    "samples": 120,
+    "note": "nvidia-smi memory.used, whole GPU; stack = Isaac Sim bridge + ROS containers + cuMotion"
+  },
+  "stats_with_gantry": {
+    "planning_time_s": {
+      "min": 0.155,
+      "mean": 0.16,
+      "max": 0.1644
+    },
+    "duration_s": {
+      "min": 5.1,
+      "mean": 7.51,
+      "max": 11.1
+    },
+    "tracking_err_rad": {
+      "min": 0.0036,
+      "mean": 0.009,
+      "max": 0.0166
+    },
+    "max_joint_dev_rad": {
+      "min": 0.1934,
+      "mean": 0.4054,
+      "max": 0.7787
+    },
+    "max_tcp_dev_m": {
+      "min": 0.0832,
+      "mean": 0.1619,
+      "max": 0.2387
+    },
+    "min_gantry_clearance_m": {
+      "min": 0.0276,
+      "mean": 0.0318,
+      "max": 0.0363
+    },
+    "goal_err_rad": {
+      "min": 0.0,
+      "mean": 0.0,
+      "max": 0.0
+    }
+  },
+  "stats_contrast": {
+    "max_joint_dev_rad": {
+      "min": 0.0293,
+      "mean": 0.0516,
+      "max": 0.0685
+    },
+    "max_tcp_dev_m": {
+      "min": 0.006,
+      "mean": 0.0099,
+      "max": 0.0149
+    },
+    "dev_ratio": {
+      "min": 12.5393,
+      "mean": 19.1794,
+      "max": 32.1667
+    }
+  },
+  "trials": [
+    {
+      "pair_index": 1,
+      "direction": "pick_to_place",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.01083,
+      "planning_time_s": 0.1607,
+      "duration_s": 9.2,
+      "n_points": 93,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 210,
+        "n_gantry_hits": 32,
+        "hit_span_rad": 1.7728,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 210,
+        "n_gantry_hits": 33,
+        "hit_span_rad": 1.7736,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.6135,
+      "max_tcp_dev_m": 0.193,
+      "min_gantry_clearance_m": 0.0328,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 2,
+      "direction": "place_to_pick",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.00595,
+      "planning_time_s": 0.1579,
+      "duration_s": 5.1,
+      "n_points": 52,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 50,
+        "n_gantry_hits": 18,
+        "hit_span_rad": 0.3583,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 50,
+        "n_gantry_hits": 18,
+        "hit_span_rad": 0.3577,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.3448,
+      "max_tcp_dev_m": 0.1912,
+      "min_gantry_clearance_m": 0.0357,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 3,
+      "direction": "pick_to_place",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.00706,
+      "planning_time_s": 0.1605,
+      "duration_s": 7.8,
+      "n_points": 79,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 145,
+        "n_gantry_hits": 89,
+        "hit_span_rad": 1.7779,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ],
+          [
+            "link3_0",
+            "world/gantry"
+          ],
+          [
+            "link4_0",
+            "world/gantry"
+          ],
+          [
+            "link5_0",
+            "world/gantry"
+          ],
+          [
+            "link6_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 145,
+        "n_gantry_hits": 89,
+        "hit_span_rad": 1.7791,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ],
+          [
+            "link3_0",
+            "world/gantry"
+          ],
+          [
+            "link4_0",
+            "world/gantry"
+          ],
+          [
+            "link5_0",
+            "world/gantry"
+          ],
+          [
+            "link6_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.4194,
+      "max_tcp_dev_m": 0.1116,
+      "min_gantry_clearance_m": 0.0307,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 4,
+      "direction": "place_to_pick",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.0057,
+      "planning_time_s": 0.1594,
+      "duration_s": 7.5,
+      "n_points": 76,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 133,
+        "n_gantry_hits": 38,
+        "hit_span_rad": 0.7562,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "link3_0",
+            "world/gantry"
+          ],
+          [
+            "link4_0",
+            "world/gantry"
+          ],
+          [
+            "link5_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 133,
+        "n_gantry_hits": 38,
+        "hit_span_rad": 0.7565,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "link3_0",
+            "world/gantry"
+          ],
+          [
+            "link4_0",
+            "world/gantry"
+          ],
+          [
+            "link5_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.4215,
+      "max_tcp_dev_m": 0.2225,
+      "min_gantry_clearance_m": 0.0342,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 5,
+      "direction": "pick_to_place",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.01334,
+      "planning_time_s": 0.155,
+      "duration_s": 6.6,
+      "n_points": 67,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 109,
+        "n_gantry_hits": 47,
+        "hit_span_rad": 0.939,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ],
+          [
+            "link5_0",
+            "world/gantry"
+          ],
+          [
+            "link6_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 109,
+        "n_gantry_hits": 47,
+        "hit_span_rad": 0.9388,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ],
+          [
+            "link5_0",
+            "world/gantry"
+          ],
+          [
+            "link6_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.2621,
+      "max_tcp_dev_m": 0.1213,
+      "min_gantry_clearance_m": 0.0288,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 6,
+      "direction": "place_to_pick",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.00849,
+      "planning_time_s": 0.1606,
+      "duration_s": 11.1,
+      "n_points": 112,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 276,
+        "n_gantry_hits": 25,
+        "hit_span_rad": 0.4986,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 276,
+        "n_gantry_hits": 25,
+        "hit_span_rad": 0.4986,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.7787,
+      "max_tcp_dev_m": 0.2387,
+      "min_gantry_clearance_m": 0.0293,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 7,
+      "direction": "pick_to_place",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.00651,
+      "planning_time_s": 0.1601,
+      "duration_s": 6.2,
+      "n_points": 63,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 70,
+        "n_gantry_hits": 23,
+        "hit_span_rad": 0.5726,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ],
+          [
+            "link5_0",
+            "world/gantry"
+          ],
+          [
+            "link6_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 70,
+        "n_gantry_hits": 21,
+        "hit_span_rad": 0.415,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "link5_0",
+            "world/gantry"
+          ],
+          [
+            "link6_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.4451,
+      "max_tcp_dev_m": 0.2036,
+      "min_gantry_clearance_m": 0.0363,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 8,
+      "direction": "place_to_pick",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.01656,
+      "planning_time_s": 0.1644,
+      "duration_s": 7.4,
+      "n_points": 75,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 122,
+        "n_gantry_hits": 29,
+        "hit_span_rad": 0.5776,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 122,
+        "n_gantry_hits": 29,
+        "hit_span_rad": 0.5777,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_left_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.2788,
+      "max_tcp_dev_m": 0.1334,
+      "min_gantry_clearance_m": 0.0329,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 9,
+      "direction": "pick_to_place",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.00364,
+      "planning_time_s": 0.1602,
+      "duration_s": 7.6,
+      "n_points": 77,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 142,
+        "n_gantry_hits": 21,
+        "hit_span_rad": 0.4194,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 142,
+        "n_gantry_hits": 21,
+        "hit_span_rad": 0.4194,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.1934,
+      "max_tcp_dev_m": 0.0832,
+      "min_gantry_clearance_m": 0.0276,
+      "deviation_measurable": true,
+      "passed": true
+    },
+    {
+      "pair_index": 10,
+      "direction": "place_to_pick",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.01224,
+      "planning_time_s": 0.1612,
+      "duration_s": 6.6,
+      "n_points": 67,
+      "collision_free": true,
+      "goal_err_rad": 0.0,
+      "goal_reached": true,
+      "straight_line_ref": {
+        "n_configs": 68,
+        "n_gantry_hits": 17,
+        "hit_span_rad": 0.3366,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "straight_line_actual": {
+        "n_configs": 68,
+        "n_gantry_hits": 17,
+        "hit_span_rad": 0.3365,
+        "clean_without_gantry": true,
+        "colliding_pairs": [
+          [
+            "gripper_link_0",
+            "world/gantry"
+          ],
+          [
+            "gripper_right_0",
+            "world/gantry"
+          ]
+        ],
+        "hits_only_gantry": true
+      },
+      "max_joint_dev_rad": 0.2966,
+      "max_tcp_dev_m": 0.1204,
+      "min_gantry_clearance_m": 0.0297,
+      "deviation_measurable": true,
+      "passed": true
+    }
+  ],
+  "contrast_trials": [
+    {
+      "pair_index": 1,
+      "world": "gantry REMOVED",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.01093,
+      "duration_s": 9.3,
+      "n_points": 94,
+      "collision_free_no_gantry": true,
+      "max_joint_dev_rad": 0.0569,
+      "max_tcp_dev_m": 0.006,
+      "crosses_gantry_volume": true,
+      "n_configs_inside_gantry": 20,
+      "with_gantry_max_tcp_dev_m": 0.193,
+      "dev_ratio_with_over_without": 32.17,
+      "near_straight": true,
+      "passed": true
+    },
+    {
+      "pair_index": 2,
+      "world": "gantry REMOVED",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.00285,
+      "duration_s": 4.5,
+      "n_points": 46,
+      "collision_free_no_gantry": true,
+      "max_joint_dev_rad": 0.0293,
+      "max_tcp_dev_m": 0.0149,
+      "crosses_gantry_volume": true,
+      "n_configs_inside_gantry": 10,
+      "with_gantry_max_tcp_dev_m": 0.1912,
+      "dev_ratio_with_over_without": 12.83,
+      "near_straight": true,
+      "passed": true
+    },
+    {
+      "pair_index": 3,
+      "world": "gantry REMOVED",
+      "planned": true,
+      "executed": true,
+      "converged": true,
+      "tracking_err_rad": 0.00946,
+      "duration_s": 7.6,
+      "n_points": 77,
+      "collision_free_no_gantry": true,
+      "max_joint_dev_rad": 0.0685,
+      "max_tcp_dev_m": 0.0089,
+      "crosses_gantry_volume": true,
+      "n_configs_inside_gantry": 58,
+      "with_gantry_max_tcp_dev_m": 0.1116,
+      "dev_ratio_with_over_without": 12.54,
+      "near_straight": true,
+      "passed": true
+    }
+  ]
+}
